@@ -23,82 +23,74 @@ class MediaPlayer extends LitElement {
 
 	static get styles() {
 		return css`
-			html {
-				height: 100%;
-			}
-
-			body {
-				height: 100%;
-			}
-
 			.container {
-				width: 100%;
-				height: 100%;
-				display: flex;
-				justify-content: center;
 				align-items: center;
+				display: flex;
+				height: 100%;
+				justify-content: center;
+				width: 100%;
 			}
 
 			.video-container {
-				width: 100%;
-				height: 100%;
 				border-radius: 4px;
-				margin: 0 auto;
-				position: relative;
 				display: flex;
 				flex-direction: column;
+				height: 100%;
 				justify-content: center;
+				margin: 0 auto;
+				position: relative;
+				width: 100%;
 			}
 
 			video {
-				width: 100%;
-				height: 100%;
 				border-radius: 4px;
+				height: 100%;
+				width: 100%;
 			}
 
 			#video-controls {
-				right: 0;
+				background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
+				bottom: 0;
+				height: 53px;
 				left: 0;
 				position: absolute;
-				bottom: 0;
+				right: 0;
 				transition: all 0.2s ease;
-				background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
-				height: 53px;
 			}
 
 			#video-controls > * {
-				top: -9px;
 				position: relative;
+				top: -9px;
 			}
 
 			#seek-bar {
-				--d2l-knob-size: 15px;
-				--d2l-outer-knob-color: var(--d2l-color-celestine-plus-1);
 				--d2l-knob-focus-color: #fff;
 				--d2l-knob-focus-size: 4px;
+				--d2l-knob-size: 15px;
+				--d2l-outer-knob-color: var(--d2l-color-celestine-plus-1);
 				--d2l-progress-border-radius: 0;
-				position: relative;
 				left: 0;
+				position: relative;
 				right: 0;
 			}
 
 			.control-element {
-				display: inline-block;
-				padding: 10px 10px;
-				margin: 0px 2px;
-				font-size: 20px;
-				position: relative;
 				border-radius: 4px;
+				display: inline-block;
+				font-size: 20px;
+				margin: 0px 2px;
+				padding: 10px 10px;
+				position: relative;
 			}
 
 			.control-element:hover {
-				cursor: pointer;
 				background: rgba(255, 255, 255, 0.2);
+				cursor: pointer;
 			}
 
 			#time:hover {
-				cursor: auto;
 				background: rgba(255, 255, 255, 0);
+				cursor: auto;
 			}
 
 			button:hover {
@@ -111,8 +103,8 @@ class MediaPlayer extends LitElement {
 
 			button {
 				background-color: transparent;
-				outline: none;
 				border: none;
+				outline: none;
 				padding: 0;
 			}
 
@@ -135,37 +127,37 @@ class MediaPlayer extends LitElement {
 			}
 
 			#volume-level-container {
+				bottom: 41px;
+				height: 40px;
+				left: -19px;
 				padding: 0px;
 				position: absolute;
-				left: -19px;
-				bottom: 41px;
 				width: 75px;
-				height: 40px;
 			}
 
 			#volume-level-background {
-				width: 125px;
-				height: 38px;
 				background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
 				border-radius: 0px 5px 5px 0px;
-				position: relative;
+				height: 38px;
 				left: 36px;
-				top: 2px;
 				padding: 0px 10px;
+				position: relative;
+				top: 2px;
+				width: 125px;
 			}
 
 			#volume-level {
-				position: relative;
-				top: 12px;
-				--d2l-knob-size: 18px;
-				--d2l-outer-knob-color: var(--d2l-color-celestine-plus-1);
 				--d2l-knob-focus-color: #fff;
 				--d2l-knob-focus-size: 4px;
+				--d2l-knob-size: 18px;
+				--d2l-outer-knob-color: var(--d2l-color-celestine-plus-1);
+				position: relative;
+				top: 12px;
 			}
 
 			#volume-button {
-				position: relative;
 				height: 18px;
+				position: relative;
 			}
 
 			#speed-container {
@@ -177,30 +169,30 @@ class MediaPlayer extends LitElement {
 			}
 
 			#speed-level-container {
-				width: 45px;
-				height: 15px;
 				bottom: 50px;
+				height: 15px;
 				position: relative;
 				top: -50px;
+				width: 45px;
 			}
 
 			#speed-level-background {
-				border-radius: 5px 5px 0px 0px;
-				position: absolute;
 				background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
-				width: 110px;
+				border-radius: 5px 5px 0px 0px;
+				bottom: 14px;
 				height: 240px;
 				left: -33px;
-				bottom: 14px;
+				position: absolute;
+				width: 110px;
 			}
 
 			#speed-level-background > button {
-				display: block;
-				color: white;
 				border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-				width: 100%;
+				color: white;
+				display: block;
 				font-size: 16px;
 				padding: 7px 30px;
+				width: 100%;
 			}
 
 			#speed-level-background > button:hover {
