@@ -1,4 +1,4 @@
-import '../d2l-media-player.js';
+import '../media-player.js';
 import { expect, fixture, html } from '@open-wc/testing';
 import { runConstructor } from '@brightspace-ui/core/tools/constructor-test-helper.js';
 
