@@ -27,7 +27,7 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 
 	static get styles() {
 		return css`
-			.d2l-media-player-container {
+			.d2l-labs-media-player-container {
 				align-items: center;
 				display: flex;
 				height: 100%;
@@ -165,10 +165,9 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 			}
 
 			#volume-button {
-				// height: 18px;
 				height: 43px;
-				width: 42px;
 				position: relative;
+				width: 42px;
 			}
 
 			#speed-container {
@@ -276,7 +275,7 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 
 	render() {
 		return html`
-		<div class="d2l-media-player-container">
+		<div class="d2l-labs-media-player-container">
 			<div class="video-container" id="video-container" style=${styleMap(this._videoContainerStyle)} @mousemove=${this._showControlsTemporarily}>
 				<video ?controls="${nativeControls}" class="video" id="video" preload="metadata" @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._initializeVideo} @timeupdate=${this._updateTimeElapsed} @click=${this._togglePlay} @volumechange=${this._onVolumeChange}>
 					<source src="${this.src}">
@@ -378,7 +377,8 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 	}
 
 	_onDragEndSeek() {
-		if (this._seekBar) { // _onDragEndSeek() is called once before firstUpdated()
+		// _onDragEndSeek() is called once before firstUpdated()
+		if (this._seekBar) {
 			this._updateCurrentTimeOfVideo(this._seekBar.immediateValue / 100);
 		}
 	}
@@ -392,7 +392,8 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 		this._video.currentTime = Math.floor(fraction * this._secondsDuration);
 	}
 
-	_onDragEndVolume() { // _onDragEndVolume() is called once before firstUpdated()
+	_onDragEndVolume() {
+		// _onDragEndVolume() is called once before firstUpdated()
 		if (this._volumeLevel) {
 			this._video.volume = this._volumeLevel.immediateValue / 100;
 		}
@@ -519,4 +520,4 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 	}
 }
 
-customElements.define('d2l-media-player', MediaPlayer);
+customElements.define('d2l-labs-media-player', MediaPlayer);

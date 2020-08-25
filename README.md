@@ -14,7 +14,7 @@
 > - [ ] [Unit tests](https://github.com/BrightspaceUI/guide/wiki/Testing#testing-with-polymer-test) (if applicable)
 > - [ ] [Accessibility tests](https://github.com/BrightspaceUI/guide/wiki/Testing#automated-accessibility-testing-with-axe)
 > - [ ] [Visual diff tests](https://github.com/BrightspaceUI/visual-diff)
-> - [ ] [Localization](https://github.com/BrightspaceUI/guide/wiki/Localization) with Serge (if applicable)
+> - [x] [Localization](https://github.com/BrightspaceUI/guide/wiki/Localization) with Serge (if applicable)
 > - [x] Demo page
 > - [ ] README documentation
 
@@ -34,7 +34,7 @@ npm install @brightspace-ui-labs/media-player
 <script type="module">
     import '@brightspace-ui-labs/media-player/media-player.js';
 </script>
-<d2l-media-player src="<URL of media source>"></d2l-media-player>
+<d2l-labs-media-player src="<URL of media source>"></d2l-labs-media-player>
 ```
 
 **Properties:**
