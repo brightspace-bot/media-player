@@ -28,7 +28,6 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 	static get styles() {
 		return css`
 			#d2l-labs-media-player-video-container {
-				background-color: black;
 				height: 100%;
 				position: relative;
 				width: 100%;
@@ -42,12 +41,10 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 
 			#d2l-labs-media-player-video-controls {
 				background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
-				bottom: 0;
-				height: 53px;
-				left: 0;
+				bottom: 7px;
 				position: absolute;
-				right: 0;
 				transition: all 0.2s ease;
+				width: 100%;
 			}
 
 			#d2l-labs-media-player-video-controls > * {
@@ -61,9 +58,7 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 				--d2l-knob-size: 15px;
 				--d2l-outer-knob-color: var(--d2l-color-celestine-plus-1);
 				--d2l-progress-border-radius: 0;
-				left: 0;
 				position: relative;
-				right: 0;
 			}
 
 			#d2l-labs-media-player-buttons {
@@ -187,7 +182,7 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 					background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
 					border-radius: 5px 5px 0px 0px;
 					bottom: 20px;
-					height: 150px;
+					height: 140px;
 					left: -17px;
 					position: absolute;
 					width: 80px;
@@ -196,7 +191,7 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 				#d2l-labs-media-player-speed-level-background > button {
 					border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 					color: white;
-					font-size: 0.6rem;
+					font-size: 0.55rem;
 					padding: 3px 15px;
 					width: 100%;
 				}
@@ -393,6 +388,10 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 
 	_onVolumeChange() {
 		this._volume = this._video.volume;
+
+		if (this._volume > 0) {
+			this._muted = false;
+		}
 	}
 
 	_onPlay() {
