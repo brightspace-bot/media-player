@@ -34,7 +34,6 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 			}
 
 			#d2l-labs-media-player-video {
-				border-radius: 4px;
 				height: 100%;
 				width: 100%;
 			}
@@ -240,7 +239,6 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 	constructor() {
 		super();
 
-		this.duration = '00:00';
 		this._fullscreen = false;
 		this._hidingControls = true;
 		this._hoveringSpeedContainer = false;
@@ -260,7 +258,7 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 	render() {
 		return html`
 		<div id="d2l-labs-media-player-video-container" style=${styleMap(this._videoContainerStyle)} @mousemove=${this._showControlsTemporarily}>
-			<video ?controls="${nativeControls}" id="d2l-labs-media-player-video" preload="metadata" @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._initializeVideo} @timeupdate=${this._updateTimeElapsed} @click=${this._togglePlay} @volumechange=${this._onVolumeChange}>
+			<video ?controls="${nativeControls}" id="d2l-labs-media-player-video" preload="metadata" @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._onLoadedMetadata} @loadeddata=${this._onLoadedData} @timeupdate=${this._updateTimeElapsed} @click=${this._togglePlay} @volumechange=${this._onVolumeChange}>
 				<source src="${this.src}">
 			</video>
 
@@ -431,8 +429,12 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 		}
 	}
 
-	_initializeVideo() {
+	_onLoadedMetadata() {
 		this._secondsDuration = Math.floor(this._video.duration);
+	}
+
+	_onLoadedData() {
+		this.dispatchEvent(new CustomEvent('d2l-labs-media-player-video-load'));
 	}
 
 	_updateTimeElapsed() {

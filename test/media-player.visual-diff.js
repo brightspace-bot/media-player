@@ -10,8 +10,8 @@ describe('d2l-labs-media-player', () => {
 	before(async() => {
 		browser = await puppeteer.launch();
 		page = await visualDiff.createPage(browser);
-		await page.setViewport({width: 800, height: 800, deviceScaleFactor: 2});
-		await page.goto(`${visualDiff.getBaseUrl()}/test/d2l-labs-media-player.visual-diff.html`, {waitUntil: ['networkidle0', 'load']});
+		await page.goto(`${visualDiff.getBaseUrl()}/test/media-player.visual-diff.html`, {waitUntil: ['networkidle0', 'load']});
+		await page.setViewport({ width: 800, height: 600, deviceScaleFactor: 2 });
 		await page.bringToFront();
 	});
 
@@ -20,4 +20,9 @@ describe('d2l-labs-media-player', () => {
 	});
 
 	after(async() => await browser.close());
+
+	it('should load', async function() {
+		const rect = await visualDiff.getRect(page, 'html');
+		await visualDiff.screenshotAndCompare(page, this.test.fullTitle(), { clip: rect });
+	});
 });
