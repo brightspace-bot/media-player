@@ -20,4 +20,9 @@ describe('d2l-labs-media-player', () => {
 	});
 
 	after(async() => await browser.close());
+
+	it('should load', async function() {
+		const rect = await visualDiff.getRect(page, 'html');
+		await visualDiff.screenshotAndCompare(page, this.test.fullTitle(), { clip: rect });
+	});
 });
