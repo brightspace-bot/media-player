@@ -27,124 +27,94 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 
 	static get styles() {
 		return css`
-			.d2l-labs-media-player-container {
-				align-items: center;
-				display: flex;
+			#d2l-labs-media-player-video-container {
 				height: 100%;
-				justify-content: center;
-				width: 100%;
-			}
-
-			.video-container {
-				border-radius: 4px;
-				display: flex;
-				flex-direction: column;
-				height: 100%;
-				justify-content: center;
-				margin: 0 auto;
 				position: relative;
 				width: 100%;
 			}
 
-			video {
+			#d2l-labs-media-player-video {
 				border-radius: 4px;
 				height: 100%;
 				width: 100%;
 			}
 
-			#video-controls {
+			#d2l-labs-media-player-video-controls {
 				background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
-				bottom: 0;
-				height: 53px;
-				left: 0;
+				bottom: 7px;
 				position: absolute;
-				right: 0;
 				transition: all 0.2s ease;
+				width: 100%;
 			}
 
-			#video-controls > * {
+			#d2l-labs-media-player-video-controls > * {
 				position: relative;
 				top: -9px;
 			}
 
-			#seek-bar {
+			#d2l-labs-media-player-seek-bar {
 				--d2l-knob-focus-color: #fff;
 				--d2l-knob-focus-size: 4px;
 				--d2l-knob-size: 15px;
 				--d2l-outer-knob-color: var(--d2l-color-celestine-plus-1);
 				--d2l-progress-border-radius: 0;
-				left: 0;
 				position: relative;
-				right: 0;
 			}
 
-			.control-element {
+			#d2l-labs-media-player-buttons {
+				align-items: center;
+				display: flex;
+				flex-direction: row;
+				justify-content: space-between;
+			}
+
+			#d2l-labs-media-player-flex-filler {
+				flex: auto;
+			}
+
+			.d2l-labs-media-player-control-element {
 				border-radius: 4px;
-				display: inline-block;
 				font-size: 1rem;
 				margin: 0 2px;
 				padding: 10px 10px;
-				position: relative;
 			}
 
-			.control-element:hover {
+			.d2l-labs-media-player-control-element:hover {
 				background: rgba(255, 255, 255, 0.2);
 				cursor: pointer;
 			}
 
-			#time:hover {
+			#d2l-labs-media-player-time:hover {
 				background: rgba(255, 255, 255, 0);
 				cursor: auto;
 			}
 
-			button:hover {
-				cursor: pointer;
-			}
-
-			.control-display {
+			.d2l-labs-media-player-control-display {
 				color: white;
 			}
 
-			button {
+			.d2l-labs-media-player-button {
 				background-color: transparent;
 				border: none;
 				outline: none;
+			}
+
+			.d2l-labs-media-player-button:hover {
+				cursor: pointer;
+			}
+
+			#d2l-labs-media-player-volume-container {
 				padding: 0;
 			}
 
-			.left {
-				float: left;
-				height: 28px;
-			}
-
-			.right {
-				float: right;
-				height: 28px;
-			}
-
-			.right > * {
-				float: right;
-			}
-
-			#volume-container {
-				padding: 0;
-			}
-
-			#volume-button {
-				font-size: 1rem;
-				z-index: 1;
-			}
-
-			#volume-level-container {
+			#d2l-labs-media-player-volume-level-container {
 				bottom: 41px;
-				height: 40px;
-				left: -19px;
-				padding: 0px;
+				left: 28px;
 				position: absolute;
 				width: 75px;
 			}
 
-			#volume-level-background {
+			#d2l-labs-media-player-volume-level-background {
 				background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
 				border-radius: 0px 5px 5px 0px;
 				height: 38px;
@@ -155,7 +125,7 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 				width: 125px;
 			}
 
-			#volume-level {
+			#d2l-labs-media-player-volume-level {
 				--d2l-knob-focus-color: #fff;
 				--d2l-knob-focus-size: 4px;
 				--d2l-knob-size: 18px;
@@ -164,53 +134,67 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 				top: 12px;
 			}
 
-			#volume-button {
+			#d2l-labs-media-player-volume-button {
+				font-size: 1rem;
 				height: 43px;
 				position: relative;
 				width: 42px;
+				z-index: 1;
 			}
 
-			#speed-container {
-				height: 0px;
+			#d2l-labs-media-player-speed-level-container {
+				bottom: 39px;
+				height: 20px;
+				position: absolute;
+				width: 42px;
 			}
 
-			#speed-container > button {
-				font-size: 0.8rem;
-			}
-
-			#speed-level-container {
-				bottom: 50px;
-				height: 15px;
-				position: relative;
-				top: -50px;
-				width: 45px;
-			}
-
-			#speed-level-background {
+			#d2l-labs-media-player-speed-level-background {
 				background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
 				border-radius: 5px 5px 0px 0px;
-				bottom: 14px;
-				height: 240px;
+				bottom: 20px;
+				display: flex;
+				flex-direction: column;
+				height: 230px;
 				left: -33px;
 				position: absolute;
 				width: 110px;
 			}
 
-			#speed-level-background > button {
+			#d2l-labs-media-player-speed-level-background > button {
 				border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 				color: white;
-				display: block;
 				font-size: 0.8rem;
 				padding: 7px 30px;
 				width: 100%;
 			}
 
-			#speed-level-background > button:hover {
+			#d2l-labs-media-player-speed-level-background > button:hover {
 				background: rgba(255, 255, 255, 0.3);
 			}
 
-			.rotated {
+			.d2l-labs-media-player-rotated {
 				transform: rotate(-90deg);
+			}
+
+			@media only screen and (max-device-width: 520px) {
+				#d2l-labs-media-player-speed-level-background {
+					background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
+					border-radius: 5px 5px 0px 0px;
+					bottom: 20px;
+					height: 140px;
+					left: -17px;
+					position: absolute;
+					width: 80px;
+				}
+
+				#d2l-labs-media-player-speed-level-background > button {
+					border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+					color: white;
+					font-size: 0.55rem;
+					padding: 3px 15px;
+					width: 100%;
+				}
 			}
 		`;
 	}
@@ -275,58 +259,57 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 
 	render() {
 		return html`
-		<div class="d2l-labs-media-player-container">
-			<div class="video-container" id="video-container" style=${styleMap(this._videoContainerStyle)} @mousemove=${this._showControlsTemporarily}>
-				<video ?controls="${nativeControls}" class="video" id="video" preload="metadata" @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._initializeVideo} @timeupdate=${this._updateTimeElapsed} @click=${this._togglePlay} @volumechange=${this._onVolumeChange}>
-					<source src="${this.src}">
-				</video>
+		<div id="d2l-labs-media-player-video-container" style=${styleMap(this._videoContainerStyle)} @mousemove=${this._showControlsTemporarily}>
+			<video ?controls="${nativeControls}" id="d2l-labs-media-player-video" preload="metadata" @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._initializeVideo} @timeupdate=${this._updateTimeElapsed} @click=${this._togglePlay} @volumechange=${this._onVolumeChange}>
+				<source src="${this.src}">
+			</video>
 
-				<div id="video-controls" ?hidden="${nativeControls || (this._hidingControls)}" @mouseenter=${this._startHoveringControls} @mouseleave=${this._stopHoveringControls}>
-					<d2l-seek-bar fullWidth solid id="seek-bar" value="${Math.floor(this._secondsElapsed / this._secondsDuration * 100)}" aria-label="SeekBar" aria-valuenow="${Math.floor(this._secondsElapsed / this._secondsDuration * 100)}" @drag-end=${this._onDragEndSeek} @position-change=${this._onPositionChangeSeek}></d2l-seek-bar>
-					<div class="left">
-						<button class="control-element" title="${this._getPlayTooltip()}" @click=${this._togglePlay}>
-							<d2l-icon class="control-display" icon="${this._getPlayIcon()}"></d2l-icon>
+			<div id="d2l-labs-media-player-video-controls" ?hidden="${nativeControls || (this._hidingControls)}" @mouseenter=${this._startHoveringControls} @mouseleave=${this._stopHoveringControls}>
+				<d2l-seek-bar fullWidth solid id="d2l-labs-media-player-seek-bar" value="${Math.floor(this._secondsElapsed / this._secondsDuration * 100)}" aria-label="SeekBar" aria-valuenow="${Math.floor(this._secondsElapsed / this._secondsDuration * 100)}" @drag-end=${this._onDragEndSeek} @position-change=${this._onPositionChangeSeek}></d2l-seek-bar>
+				<div id="d2l-labs-media-player-buttons">
+					<button class="d2l-labs-media-player-control-element d2l-labs-media-player-button" title="${this._getPlayTooltip()}" @click=${this._togglePlay}>
+						<d2l-icon class="d2l-labs-media-player-control-display" icon="${this._getPlayIcon()}"></d2l-icon>
+					</button>
+
+					<div class="d2l-labs-media-player-control-element" id="d2l-labs-media-player-volume-container" @mouseenter=${this._startHoveringVolumeContainer} @mouseleave=${this._stopHoveringVolumeContainer}>
+						<button class="d2l-labs-media-player-button" id="d2l-labs-media-player-volume-button" title="${this._getMuteTooltip()}" @click=${this._toggleMute}>
+							<d2l-icon class="d2l-labs-media-player-control-display" icon="tier1:volume"></d2l-icon>
 						</button>
 
-						<div class="control-element" id="volume-container" @mouseenter=${this._startHoveringVolumeContainer} @mouseleave=${this._stopHoveringVolumeContainer}>
-							<button id="volume-button" title="${this._getMuteTooltip()}" @click=${this._toggleMute}>
-								<d2l-icon class="control-display" icon="tier1:volume"></d2l-icon>
-							</button>
-
-							<div class="rotated" id="volume-level-container" ?hidden="${!this._hoveringVolumeContainer}">
-								<div id="volume-level-background">
-									<d2l-seek-bar solid id="volume-level" vertical="" value="${Math.round(this._volume * 100)}" @drag-end=${this._onDragEndVolume} @position-change=${this._onPositionChangeVolume}></d2l-seek-bar>
-								</div>
-							</div>
-						</div>
-
-						<div class="control-element control-display" id="time">
-							${MediaPlayer._formatTime(this._secondsElapsed)} / ${MediaPlayer._formatTime(this._secondsDuration)}
-						</div>
-					</div>
-					<div class="right">
-						<button class="control-element" title="${this._getFullscreenTooltip()}" @click=${this._toggleFullscreen}>
-							<d2l-icon class="control-display" icon="${this._getFullscreenIcon()}"></d2l-icon>
-						</button>
-
-						<div id="speed-container" @mouseenter=${this._startHoveringSpeedContainer} @mouseleave=${this._stopHoveringSpeedContainer}>
-							<button class="control-element control-display">
-								${this._speed}x
-							</button>
-
-							<div id="speed-level-container">
-								<div id="speed-level-background" ?hidden="${!this._hoveringSpeedContainer}">
-									<button value="0.25" @click=${this._updatePlaybackRate}>0.25</button>
-									<button value="0.5" @click=${this._updatePlaybackRate}>0.5</button>
-									<button value="0.75" @click=${this._updatePlaybackRate}>0.75</button>
-									<button value="1" @click=${this._updatePlaybackRate}>Normal</button>
-									<button value="1.25" @click=${this._updatePlaybackRate}>1.25</button>
-									<button value="1.5" @click=${this._updatePlaybackRate}>1.5</button>
-									<button value="2" @click=${this._updatePlaybackRate}>2</button>
-								</div>
+						<div class="d2l-labs-media-player-rotated" id="d2l-labs-media-player-volume-level-container" ?hidden="${!this._hoveringVolumeContainer}">
+							<div id="d2l-labs-media-player-volume-level-background">
+								<d2l-seek-bar solid id="d2l-labs-media-player-volume-level" vertical="" value="${Math.round(this._volume * 100)}" @drag-end=${this._onDragEndVolume} @position-change=${this._onPositionChangeVolume}></d2l-seek-bar>
 							</div>
 						</div>
 					</div>
+
+					<div class="d2l-labs-media-player-control-element d2l-labs-media-player-control-display" id="d2l-labs-media-player-time">
+						${MediaPlayer._formatTime(this._secondsElapsed)} / ${MediaPlayer._formatTime(this._secondsDuration)}
+					</div>
+
+					<div id="d2l-labs-media-player-flex-filler"></div>
+
+					<div id="d2l-labs-media-player-speed-container" @mouseenter=${this._startHoveringSpeedContainer} @mouseleave=${this._stopHoveringSpeedContainer}>
+						<button class="d2l-labs-media-player-control-element d2l-labs-media-player-control-display d2l-labs-media-player-button">
+							${this._speed}x
+						</button>
+
+						<div id="d2l-labs-media-player-speed-level-container" ?hidden="${!this._hoveringSpeedContainer}">
+							<div id="d2l-labs-media-player-speed-level-background">
+								<button class="d2l-labs-media-player-button" value="0.25" @click=${this._updatePlaybackRate}>0.25</button>
+								<button class="d2l-labs-media-player-button" value="0.5" @click=${this._updatePlaybackRate}>0.5</button>
+								<button class="d2l-labs-media-player-button" value="0.75" @click=${this._updatePlaybackRate}>0.75</button>
+								<button class="d2l-labs-media-player-button" value="1" @click=${this._updatePlaybackRate}>Normal</button>
+								<button class="d2l-labs-media-player-button" value="1.25" @click=${this._updatePlaybackRate}>1.25</button>
+								<button class="d2l-labs-media-player-button" value="1.5" @click=${this._updatePlaybackRate}>1.5</button>
+								<button class="d2l-labs-media-player-button" value="2" @click=${this._updatePlaybackRate}>2</button>
+							</div>
+						</div>
+					</div>
+
+					<button class="d2l-labs-media-player-control-element d2l-labs-media-player-button" title="${this._getFullscreenTooltip()}" @click=${this._toggleFullscreen}>
+						<d2l-icon class="d2l-labs-media-player-control-display" icon="${this._getFullscreenIcon()}"></d2l-icon>
+					</button>
 				</div>
 			</div>
 		</div>
@@ -348,10 +331,10 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 	firstUpdated() {
 		super.firstUpdated();
 
-		this._video = this.shadowRoot.getElementById('video');
-		this._seekBar = this.shadowRoot.getElementById('seek-bar');
-		this._volumeLevel = this.shadowRoot.getElementById('volume-level');
-		this._videoContainer = this.shadowRoot.getElementById('video-container');
+		this._video = this.shadowRoot.getElementById('d2l-labs-media-player-video');
+		this._seekBar = this.shadowRoot.getElementById('d2l-labs-media-player-seek-bar');
+		this._volumeLevel = this.shadowRoot.getElementById('d2l-labs-media-player-volume-level');
+		this._videoContainer = this.shadowRoot.getElementById('d2l-labs-media-player-video-container');
 
 		this._showControlsTemporarily();
 	}
@@ -405,6 +388,10 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 
 	_onVolumeChange() {
 		this._volume = this._video.volume;
+
+		if (this._volume > 0) {
+			this._muted = false;
+		}
 	}
 
 	_onPlay() {
