@@ -20,6 +20,8 @@
 
 A reusable media player component.
 
+![Example of media-player](demo/example.png)
+
 ## Installation
 
 To install from NPM:
