@@ -16,7 +16,7 @@ jobs:
       env:
         - SAUCE_USERNAME: Desire2Learn
         # SAUCE_ACCESS_KEY
-        - secure: # need key
+        - secure: SEPydU0BXotnh7HdeOrMGJC3Vc2b8uNFCu4p/V+CiXa0PxwDVXiC66Q2y1yo3jsp99AHr3dZzgj7PxPO3I06HF8PEWjgOaK5afWfmM3jT7Zdj6RFOCB8TX7iYzisH07137lbRo8sQHEFNQk2h7FRpRrAQcJIcMFD3PqQ6PrMpty71K+V3mSrGfO2KWYzNpDoZZy6oo+/1BfLqhGxRmpzuger66gJoC3wmeiow53fJpzeJXKrN1EDza1xqy6SFF1t7pAVGlS+Zv5ZZ9/nTS2WQ7FUg8Kt9gASP9ou3QCGCpCxmj8nydIoWc0qK6DjMpwyVa+0WiigkPUpkk1lUdmySiJ3n1jqnzSsKPhRVv7nET0KjPMHzQODcrpYSzC3yTq1KGD5QGQGMc9xr5rnXjQNNP3swNzbtFk1wPGGDsXasAE4P7DsVw54ijtrnRk5nyTv+tbYCF4PTI7AUnbafdIEek1iV5k4mb6sec3UPZAx2Z6TSykiuB6m6na3vHSW6RY1nu6Fm2HQKLQzsIyn0RR2MWqS3lIjqqFnDXbzTBNbv7Z8uVhlBJDA8SwV7r7l32GJGTZCC5RKfNC/95V7tHOQkdQBMuvlSR8g2RPPukT2aojW/jm7wmG/g/3rgUWAoBbDEUQgYzL5fpg3ysWzPM8WyXNGltO3TUOKjw5j9e32tnY=
     - stage: Visual-difference-tests
       script:
       - if [ $TRAVIS_SECURE_ENV_VARS == true ]; then
@@ -39,12 +39,12 @@ jobs:
         email: d2ltravisdeploy@d2l.com
         skip_cleanup: true
         api_key:
-          # 8689......727c (update this with first and last 4 chars of key)
-          secure: # need key
+          # 105f......e0ff (update this with first and last 4 chars of key)
+          secure: A+13TpYS/mfPBz4yEt5f25T+nr9/i6Msi5ty25dTWr+HM37ZFPC1NEuW7T7LZWxTXCDxuNVLCoNiLW2cP80qEN6y+cAexP7ZDeo9+AZwKUenoPYBBV4Rda8SIpbI1PvKca/2rr3ZYkXQ4M8CcHAYyJFGOdv9Ts8oep79raqGyqzjyoA1XYs4IrK+VuRN8CrYVOB/LG8414wS6gqyvOM4Ux0AY6C0//gwrW20YGO6Hw0eDCNYpxA/pdYajBLRig8Mmo8fPXkeK/E5nDGVEFsBa81JyyVF+M5wyPM1UJnY84i7xOFN5W94Y0F+dOJnNkwmZ5q1tWMMb1gPyFQd77U5VhvHYq1vUIuVGap/unGhS9jliPqIqYNp06A0nG96P35LDSQxtVaxhP+EhUqsbdZORQwV2Spxn/SjQGsUPU442Ba8WSp3JVaYIj3UFQf2FRtgBKczfL9dKG0mtzyjclslAQZqRmZzTyKW8C5ZGwX52eDGg+JvvH72JxLIqxpAxnXDuJqGsiFY4kDissPxnjd5UDJKUuSs3lbgP9zgR7qpQhTJjHjUWSq227CtLmT9TqxVIavjhF8m96qrOs1aOVicQxGwXyXwHZGDt0Bo1b9LDuiO3Eao3432KEvGk0IzcXDwwbFF9dvuIkpZlseVGo0a06I6Mn+6Cz3nfEOe1E4FKeI=
         on:
           repo: BrightspaceUILabs/media-player
           tags: true
 env:
   global:
   # GITHUB_RELEASE_TOKEN
-  - secure: # need key
+  - secure: jwMptkFww2ye4Cl3vErwCMGfVwyKoG3OuvUfHVE6GZObMrjXVyQczwhf6xxiHrtuXLGlidgnBlTfPP+gdSexYnTn9MRyibOom/YXq6kk/xYMmKbIlebH12gAV0dxvKi8vYE+j+bAfkOQIexT91acQrL9iJevpy1nwe18tLk/uTsMUGYXO4vS0WddylybTcs4EZ8JScg6fltqgwXuzkpbnHT1ED+LzRitLBgSieKCbjWSedQxI9QTbGi3MSRG4OOpWrJCvW0l1L+jymcXkkI0h4PeaGMEeCq/Y4FnaYFC1AuzaX8ya38II6FvcVedoVfmB9bGFDuQUpOUoADRwfHJSPjenIy7JLc2siCujLHHiRESXZqb+OqvD3zTVQe93EYxZerqamIjahx/CGOM2RhfTe3njb7w27cjvPlq7PcOhW8eSt6om8YftHfFTNkW9Asj/KYBfppL3sXJH3omNBIvhRNIL7pBP6yazLgls5+2lLtbF5KBCDrrCD2ON28yz3D0B8FYv4T+3yY+qtcNurJl+MlSkltswEkWInkBLCIzZWYeGGz+a5WF230uJa588J8k7v57lmf3GgGG4Jf2EpBnjbjIuU6u82bfbfDdO9jBIk1LisSULoSgnwDQsp4LD7ih0Ojy0J/+SLhfWZBEdtiQZ3NvDIEDjuG31YxSKhBNSiA=
