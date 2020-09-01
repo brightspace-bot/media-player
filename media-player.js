@@ -257,7 +257,7 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 
 	render() {
 		return html`
-		<div id="d2l-labs-media-player-video-container" style=${styleMap(this._videoContainerStyle)} @mousemove=${this._showControlsTemporarily}>
+		<div id="d2l-labs-media-player-video-container" style=${styleMap(this._videoContainerStyle)} ?hidden="${this.src === undefined}" @mousemove=${this._showControlsTemporarily}>
 			<video ?controls="${nativeControls}" id="d2l-labs-media-player-video" preload="metadata" @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._onLoadedMetadata} @loadeddata=${this._onLoadedData} @timeupdate=${this._updateTimeElapsed} @click=${this._togglePlay} @volumechange=${this._onVolumeChange}>
 				<source src="${this.src}">
 			</video>

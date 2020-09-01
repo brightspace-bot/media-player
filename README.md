@@ -18,7 +18,9 @@
 > - [x] Demo page
 > - [x] README documentation
 
-A reusable media player component.
+A LitElement based media player component, designed for similarity across browsers.
+
+![Example of media-player](demo/example.png)
 
 ## Installation
 
