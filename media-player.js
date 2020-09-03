@@ -28,19 +28,20 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 	static get styles() {
 		return css`
 			#d2l-labs-media-player-video-container {
-				height: 100%;
+				background-color: black;
 				position: relative;
-				width: 100%;
 			}
 
 			#d2l-labs-media-player-video {
+				display: block;
 				height: 100%;
+				max-height: 100vh;
 				width: 100%;
 			}
 
 			#d2l-labs-media-player-video-controls {
 				background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
-				bottom: 7px;
+				bottom: 0px;
 				position: absolute;
 				transition: all 0.2s ease;
 				width: 100%;
@@ -48,7 +49,7 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 
 			#d2l-labs-media-player-video-controls > * {
 				position: relative;
-				top: -9px;
+				top: 0px;
 			}
 
 			#d2l-labs-media-player-seek-bar {
@@ -57,7 +58,9 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 				--d2l-knob-size: 15px;
 				--d2l-outer-knob-color: var(--d2l-color-celestine-plus-1);
 				--d2l-progress-border-radius: 0;
-				position: relative;
+				position: absolute;
+				top: -9px;
+				width: 100%;
 			}
 
 			#d2l-labs-media-player-buttons {
@@ -107,8 +110,8 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 			}
 
 			#d2l-labs-media-player-volume-level-container {
-				bottom: 41px;
-				left: 28px;
+				bottom: 35px;
+				left: 27px;
 				position: absolute;
 				width: 75px;
 			}
@@ -142,7 +145,7 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 			}
 
 			#d2l-labs-media-player-speed-level-container {
-				bottom: 39px;
+				bottom: 32px;
 				height: 20px;
 				position: absolute;
 				width: 42px;
@@ -199,6 +202,8 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 	}
 
 	static _formatTime(totalSeconds) {
+		totalSeconds = Math.floor(totalSeconds);
+
 		let str = '';
 
 		const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -230,10 +235,14 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 
 	static get _keyBindings() {
 		return {
-			play: 'k',
+			play: ' ',
 			mute: 'm',
 			fullscreen: 'f'
 		};
+	}
+
+	static get _seekBarUpdatePeriodMs() {
+		return 250;
 	}
 
 	constructor() {
@@ -258,7 +267,7 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 	render() {
 		return html`
 		<div id="d2l-labs-media-player-video-container" style=${styleMap(this._videoContainerStyle)} ?hidden="${this.src === undefined}" @mousemove=${this._showControlsTemporarily}>
-			<video ?controls="${nativeControls}" id="d2l-labs-media-player-video" preload="metadata" @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._onLoadedMetadata} @loadeddata=${this._onLoadedData} @timeupdate=${this._updateTimeElapsed} @click=${this._togglePlay} @volumechange=${this._onVolumeChange}>
+			<video ?controls="${nativeControls}" id="d2l-labs-media-player-video" preload="metadata" @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._onLoadedMetadata} @loadeddata=${this._onLoadedData} @click=${this._togglePlay} @volumechange=${this._onVolumeChange}>
 				<source src="${this.src}">
 			</video>
 
@@ -335,6 +344,7 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 		this._videoContainer = this.shadowRoot.getElementById('d2l-labs-media-player-video-container');
 
 		this._showControlsTemporarily();
+		this._updateTimeElapsed();
 	}
 
 	_getFullscreenIcon() {
@@ -346,7 +356,7 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 	}
 
 	_getPlayTooltip() {
-		return `${this._playing ? this.localize('pause') : this.localize('play')} (${MediaPlayer._keyBindings.play})`;
+		return `${this._playing ? this.localize('pause') : this.localize('play')} (${this.localize('spacebar')})`;
 	}
 
 	_getFullscreenTooltip() {
@@ -438,7 +448,9 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 	}
 
 	_updateTimeElapsed() {
-		this._secondsElapsed = Math.floor(this._video.currentTime);
+		this._secondsElapsed = this._video.currentTime;
+
+		setTimeout(() => this._updateTimeElapsed(), MediaPlayer._seekBarUpdatePeriodMs);
 	}
 
 	_listenForKeyboard(e) {

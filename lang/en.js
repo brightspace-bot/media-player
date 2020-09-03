@@ -4,5 +4,6 @@ export default {
 	mute: 'Mute',
 	pause: 'Pause',
 	play: 'Play',
+	spacebar: 'spacebar',
 	unmute: 'Unmute'
 };
