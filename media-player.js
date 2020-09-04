@@ -1,6 +1,7 @@
+/* global screenfull */
 import '@brightspace-ui/core/components/icons/icon.js';
 import '@d2l/seek-bar/d2l-seek-bar.js';
-import * as screenfull from 'screenfull';
+import 'screenfull';
 import { css, html, LitElement } from 'lit-element/lit-element.js';
 import { InternalLocalizeMixin } from './src/mixins/internal-localize-mixin';
 import { styleMap } from 'lit-html/directives/style-map';
@@ -323,7 +324,7 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 						</div>
 					</div>
 
-					<button ?hidden="${!screenfull.isEnabled}" class="d2l-labs-media-player-control-element d2l-labs-media-player-button" title="${this._getFullscreenTooltip()}" @click=${this._toggleFullscreen}>
+					<button ?hidden="${!this._fullscreenEnabled()}" class="d2l-labs-media-player-control-element d2l-labs-media-player-button" title="${this._getFullscreenTooltip()}" @click=${this._toggleFullscreen}>
 						<d2l-icon class="d2l-labs-media-player-control-display" icon="${this._getFullscreenIcon()}"></d2l-icon>
 					</button>
 				</div>
@@ -455,13 +456,17 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 	}
 
 	_toggleFullscreen() {
-		if (!screenfull.isEnabled) return;
+		if (!this._fullscreenEnabled()) return;
 
 		if (screenfull.isFullscreen) {
 			screenfull.exit();
 		} else {
 			screenfull.request(this._videoContainer);
 		}
+	}
+
+	_fullscreenEnabled() {
+		return screenfull.isEnabled;
 	}
 
 	_onLoadedMetadata() {
