@@ -290,7 +290,7 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 
 					<div class="d2l-labs-media-player-control-element" id="d2l-labs-media-player-volume-container" @mouseenter=${this._startHoveringVolumeContainer} @mouseleave=${this._stopHoveringVolumeContainer}>
 						<button class="d2l-labs-media-player-button" id="d2l-labs-media-player-volume-button" title="${this._getMuteTooltip()}" @click=${this._toggleMute}>
-							<d2l-icon class="d2l-labs-media-player-control-display" icon="tier1:volume"></d2l-icon>
+							<d2l-icon class="d2l-labs-media-player-control-display" icon="${this._getVolumeIcon()}"></d2l-icon>
 						</button>
 
 						<div class="d2l-labs-media-player-rotated" id="d2l-labs-media-player-volume-level-container" ?hidden="${!this._hoveringVolumeContainer}">
@@ -371,6 +371,10 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 
 	_getFullscreenTooltip() {
 		return `${screenfull.isFullscreen ? this.localize('exitFullscreen') : this.localize('fullscreen')} (${MediaPlayer._keyBindings.fullscreen})`;
+	}
+
+	_getVolumeIcon() {
+		return this._muted ? 'tier1:volume-muted' : 'tier1:volume';
 	}
 
 	_getMuteTooltip() {
