@@ -1,5 +1,7 @@
+/* global screenfull */
 import '@brightspace-ui/core/components/icons/icon.js';
 import '@d2l/seek-bar/d2l-seek-bar.js';
+import 'screenfull';
 import { css, html, LitElement } from 'lit-element/lit-element.js';
 import { InternalLocalizeMixin } from './src/mixins/internal-localize-mixin';
 import { styleMap } from 'lit-html/directives/style-map';
@@ -11,7 +13,6 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 	static get properties() {
 		return {
 			src: { type: String },
-			_fullscreen: { type: Boolean },
 			_hidingControls: { type: Boolean },
 			_hoveringSpeedContainer: { type: Boolean },
 			_hoveringVolumeContainer: { type: Boolean },
@@ -28,19 +29,20 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 	static get styles() {
 		return css`
 			#d2l-labs-media-player-video-container {
-				height: 100%;
+				background-color: black;
 				position: relative;
-				width: 100%;
 			}
 
 			#d2l-labs-media-player-video {
+				display: block;
 				height: 100%;
+				max-height: 100vh;
 				width: 100%;
 			}
 
 			#d2l-labs-media-player-video-controls {
 				background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
-				bottom: 7px;
+				bottom: 0px;
 				position: absolute;
 				transition: all 0.2s ease;
 				width: 100%;
@@ -48,7 +50,7 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 
 			#d2l-labs-media-player-video-controls > * {
 				position: relative;
-				top: -9px;
+				top: 0px;
 			}
 
 			#d2l-labs-media-player-seek-bar {
@@ -57,7 +59,9 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 				--d2l-knob-size: 15px;
 				--d2l-outer-knob-color: var(--d2l-color-celestine-plus-1);
 				--d2l-progress-border-radius: 0;
-				position: relative;
+				position: absolute;
+				top: -9px;
+				width: 100%;
 			}
 
 			#d2l-labs-media-player-buttons {
@@ -107,8 +111,8 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 			}
 
 			#d2l-labs-media-player-volume-level-container {
-				bottom: 41px;
-				left: 28px;
+				bottom: 35px;
+				left: 27px;
 				position: absolute;
 				width: 75px;
 			}
@@ -141,11 +145,16 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 				z-index: 1;
 			}
 
+			#d2l-labs-media-player-speed-button {
+				position: relative;
+				z-index: 1;
+			}
+
 			#d2l-labs-media-player-speed-level-container {
-				bottom: 39px;
+				bottom: 32px;
 				height: 20px;
 				position: absolute;
-				width: 42px;
+				width: 50px;
 			}
 
 			#d2l-labs-media-player-speed-level-background {
@@ -199,6 +208,8 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 	}
 
 	static _formatTime(totalSeconds) {
+		totalSeconds = Math.floor(totalSeconds);
+
 		let str = '';
 
 		const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -230,16 +241,23 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 
 	static get _keyBindings() {
 		return {
-			play: 'k',
+			play: ' ',
 			mute: 'm',
 			fullscreen: 'f'
 		};
 	}
 
+	static get _seekBarUpdatePeriodMs() {
+		return 250;
+	}
+
+	static get _timeoutForDoubleClickMs() {
+		return 500;
+	}
+
 	constructor() {
 		super();
 
-		this._fullscreen = false;
 		this._hidingControls = true;
 		this._hoveringSpeedContainer = false;
 		this._hoveringVideoControls = false;
@@ -249,6 +267,7 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 		this._secondsDuration = 1;
 		this._secondsElapsed = 0;
 		this._speed = 1;
+		this._videoClicked = false;
 		this._videoContainerStyle = { cursor: 'auto' };
 		this._volume = 1;
 
@@ -258,20 +277,20 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 	render() {
 		return html`
 		<div id="d2l-labs-media-player-video-container" style=${styleMap(this._videoContainerStyle)} ?hidden="${this.src === undefined}" @mousemove=${this._showControlsTemporarily}>
-			<video ?controls="${nativeControls}" id="d2l-labs-media-player-video" preload="metadata" @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._onLoadedMetadata} @loadeddata=${this._onLoadedData} @timeupdate=${this._updateTimeElapsed} @click=${this._togglePlay} @volumechange=${this._onVolumeChange}>
+			<video ?controls="${nativeControls}" id="d2l-labs-media-player-video" preload="metadata" @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._onLoadedMetadata} @loadeddata=${this._onLoadedData} @click=${this._onVideoClick} @volumechange=${this._onVolumeChange}>
 				<source src="${this.src}">
 			</video>
 
 			<div id="d2l-labs-media-player-video-controls" ?hidden="${nativeControls || (this._hidingControls)}" @mouseenter=${this._startHoveringControls} @mouseleave=${this._stopHoveringControls}>
 				<d2l-seek-bar fullWidth solid id="d2l-labs-media-player-seek-bar" value="${Math.floor(this._secondsElapsed / this._secondsDuration * 100)}" aria-label="SeekBar" aria-valuenow="${Math.floor(this._secondsElapsed / this._secondsDuration * 100)}" @drag-end=${this._onDragEndSeek} @position-change=${this._onPositionChangeSeek}></d2l-seek-bar>
 				<div id="d2l-labs-media-player-buttons">
-					<button class="d2l-labs-media-player-control-element d2l-labs-media-player-button" title="${this._getPlayTooltip()}" @click=${this._togglePlay}>
+					<button class="d2l-labs-media-player-control-element d2l-labs-media-player-button" id="d2l-labs-media-player-play-button" title="${this._getPlayTooltip()}" @click=${this._togglePlay}>
 						<d2l-icon class="d2l-labs-media-player-control-display" icon="${this._getPlayIcon()}"></d2l-icon>
 					</button>
 
 					<div class="d2l-labs-media-player-control-element" id="d2l-labs-media-player-volume-container" @mouseenter=${this._startHoveringVolumeContainer} @mouseleave=${this._stopHoveringVolumeContainer}>
 						<button class="d2l-labs-media-player-button" id="d2l-labs-media-player-volume-button" title="${this._getMuteTooltip()}" @click=${this._toggleMute}>
-							<d2l-icon class="d2l-labs-media-player-control-display" icon="tier1:volume"></d2l-icon>
+							<d2l-icon class="d2l-labs-media-player-control-display" icon="${this._getVolumeIcon()}"></d2l-icon>
 						</button>
 
 						<div class="d2l-labs-media-player-rotated" id="d2l-labs-media-player-volume-level-container" ?hidden="${!this._hoveringVolumeContainer}">
@@ -287,25 +306,25 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 
 					<div id="d2l-labs-media-player-flex-filler"></div>
 
-					<div id="d2l-labs-media-player-speed-container" @mouseenter=${this._startHoveringSpeedContainer} @mouseleave=${this._stopHoveringSpeedContainer}>
-						<button class="d2l-labs-media-player-control-element d2l-labs-media-player-control-display d2l-labs-media-player-button">
+					<div @mouseenter=${this._startHoveringSpeedContainer} @mouseleave=${this._stopHoveringSpeedContainer}>
+						<button class="d2l-labs-media-player-control-element d2l-labs-media-player-control-display d2l-labs-media-player-button" id="d2l-labs-media-player-speed-button">
 							${this._speed}x
 						</button>
 
 						<div id="d2l-labs-media-player-speed-level-container" ?hidden="${!this._hoveringSpeedContainer}">
 							<div id="d2l-labs-media-player-speed-level-background">
-								<button class="d2l-labs-media-player-button" value="0.25" @click=${this._updatePlaybackRate}>0.25</button>
-								<button class="d2l-labs-media-player-button" value="0.5" @click=${this._updatePlaybackRate}>0.5</button>
-								<button class="d2l-labs-media-player-button" value="0.75" @click=${this._updatePlaybackRate}>0.75</button>
+								<button class="d2l-labs-media-player-button" value="0.25" @click=${this._updatePlaybackRate}>0.25x</button>
+								<button class="d2l-labs-media-player-button" value="0.5" @click=${this._updatePlaybackRate}>0.5x</button>
+								<button class="d2l-labs-media-player-button" value="0.75" @click=${this._updatePlaybackRate}>0.75x</button>
 								<button class="d2l-labs-media-player-button" value="1" @click=${this._updatePlaybackRate}>Normal</button>
-								<button class="d2l-labs-media-player-button" value="1.25" @click=${this._updatePlaybackRate}>1.25</button>
-								<button class="d2l-labs-media-player-button" value="1.5" @click=${this._updatePlaybackRate}>1.5</button>
-								<button class="d2l-labs-media-player-button" value="2" @click=${this._updatePlaybackRate}>2</button>
+								<button class="d2l-labs-media-player-button" value="1.25" @click=${this._updatePlaybackRate}>1.25x</button>
+								<button class="d2l-labs-media-player-button" value="1.5" @click=${this._updatePlaybackRate}>1.5x</button>
+								<button class="d2l-labs-media-player-button" value="2" @click=${this._updatePlaybackRate}>2x</button>
 							</div>
 						</div>
 					</div>
 
-					<button class="d2l-labs-media-player-control-element d2l-labs-media-player-button" title="${this._getFullscreenTooltip()}" @click=${this._toggleFullscreen}>
+					<button ?hidden="${!this._fullscreenEnabled()}" class="d2l-labs-media-player-control-element d2l-labs-media-player-button" title="${this._getFullscreenTooltip()}" @click=${this._toggleFullscreen}>
 						<d2l-icon class="d2l-labs-media-player-control-display" icon="${this._getFullscreenIcon()}"></d2l-icon>
 					</button>
 				</div>
@@ -329,16 +348,17 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 	firstUpdated() {
 		super.firstUpdated();
 
-		this._video = this.shadowRoot.getElementById('d2l-labs-media-player-video');
 		this._seekBar = this.shadowRoot.getElementById('d2l-labs-media-player-seek-bar');
-		this._volumeLevel = this.shadowRoot.getElementById('d2l-labs-media-player-volume-level');
+		this._video = this.shadowRoot.getElementById('d2l-labs-media-player-video');
 		this._videoContainer = this.shadowRoot.getElementById('d2l-labs-media-player-video-container');
+		this._volumeLevel = this.shadowRoot.getElementById('d2l-labs-media-player-volume-level');
 
 		this._showControlsTemporarily();
+		this._updateTimeElapsed();
 	}
 
 	_getFullscreenIcon() {
-		return this._fullscreen ? 'tier1:smallscreen' : 'tier1:fullscreen';
+		return screenfull.isFullscreen ? 'tier1:smallscreen' : 'tier1:fullscreen';
 	}
 
 	_getPlayIcon() {
@@ -346,11 +366,15 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 	}
 
 	_getPlayTooltip() {
-		return `${this._playing ? this.localize('pause') : this.localize('play')} (${MediaPlayer._keyBindings.play})`;
+		return `${this._playing ? this.localize('pause') : this.localize('play')} (${this.localize('spacebar')})`;
 	}
 
 	_getFullscreenTooltip() {
-		return `${this._fullscreen ? this.localize('exitFullscreen') : this.localize('fullscreen')} (${MediaPlayer._keyBindings.fullscreen})`;
+		return `${screenfull.isFullscreen ? this.localize('exitFullscreen') : this.localize('fullscreen')} (${MediaPlayer._keyBindings.fullscreen})`;
+	}
+
+	_getVolumeIcon() {
+		return this._muted ? 'tier1:volume-muted' : 'tier1:volume';
 	}
 
 	_getMuteTooltip() {
@@ -400,6 +424,22 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 		this._playing = false;
 	}
 
+	_onVideoClick() {
+		this._togglePlay();
+
+		if (this._videoClicked) {
+			this._toggleFullscreen();
+		} else {
+			setTimeout(() => {
+				if (this._videoClicked) {
+					this._videoClicked = false;
+				}
+			}, MediaPlayer._timeoutForDoubleClickMs);
+		}
+
+		this._videoClicked = !this._videoClicked;
+	}
+
 	_togglePlay() {
 		if (this._video.paused) {
 			this._video.play();
@@ -420,13 +460,17 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 	}
 
 	_toggleFullscreen() {
-		if (document.fullscreenElement) {
-			document.exitFullscreen();
-			this._fullscreen = false;
+		if (!this._fullscreenEnabled()) return;
+
+		if (screenfull.isFullscreen) {
+			screenfull.exit();
 		} else {
-			this._videoContainer.requestFullscreen();
-			this._fullscreen = true;
+			screenfull.request(this._videoContainer);
 		}
+	}
+
+	_fullscreenEnabled() {
+		return screenfull.isEnabled;
 	}
 
 	_onLoadedMetadata() {
@@ -438,13 +482,21 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 	}
 
 	_updateTimeElapsed() {
-		this._secondsElapsed = Math.floor(this._video.currentTime);
+		this._secondsElapsed = this._video.currentTime;
+
+		setTimeout(() => this._updateTimeElapsed(), MediaPlayer._seekBarUpdatePeriodMs);
 	}
 
 	_listenForKeyboard(e) {
 		switch (e.key) {
 			case MediaPlayer._keyBindings.play:
-				this._togglePlay();
+				if (!this.shadowRoot.activeElement || this.shadowRoot.activeElement.id !== 'd2l-labs-media-player-play-button') {
+					// Pressing spacebar fires a 'click' event on the focused element. If
+					// the play button is focused, hitting spacebar would toggle play twice, doing
+					// nothing
+					this._togglePlay();
+				}
+
 				this._showControlsTemporarily();
 				break;
 			case MediaPlayer._keyBindings.mute:

@@ -45,9 +45,10 @@
     "require-dir": "^1.2.0"
   },
   "dependencies": {
-    "@brightspace-ui/core": "^1",
+    "@brightspace-ui/core": "^1.76.1",
     "@d2l/seek-bar": "Brightspace/d2l-seek-bar#semver:^1",
     "@webcomponents/webcomponentsjs": "^2",
-    "lit-element": "^2"
+    "lit-element": "^2",
+    "screenfull": "^5.0.2"
   }
 }
