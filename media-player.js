@@ -1,33 +1,49 @@
 /* global screenfull */
 import '@brightspace-ui/core/components/icons/icon.js';
 import '@d2l/seek-bar/d2l-seek-bar.js';
-import 'screenfull';
+import './node_modules/screenfull/dist/screenfull.js';
 import { css, html, LitElement } from 'lit-element/lit-element.js';
 import { InternalLocalizeMixin } from './src/mixins/internal-localize-mixin';
 import { styleMap } from 'lit-html/directives/style-map';
+import { RtlMixin } from '@brightspace-ui/core/mixins/rtl-mixin';
 
 const nativeControls = !document.createElement('video').canPlayType;
+const HIDE_DELAY_MS = 2000;
+const KEY_BINDINGS = {
+	play: ' ',
+	mute: 'm',
+	fullscreen: 'f'
+};
+const SEEK_BAR_UPDATE_PERIOD_MS = 250;
+const TIMEOUT_FOR_DOUBLE_CLICK_MS = 500;
 
-class MediaPlayer extends InternalLocalizeMixin(LitElement) {
+class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 
 	static get properties() {
 		return {
 			src: { type: String },
-			_hidingControls: { type: Boolean },
-			_hoveringSpeedContainer: { type: Boolean },
-			_hoveringVolumeContainer: { type: Boolean },
-			_muted: { type: Boolean },
-			_playing: { type: Boolean },
-			_secondsDuration: { type: Number },
-			_secondsElapsed: { type: Number },
-			_speed: { type: Number },
-			_videoContainerStyle: { type: Object },
-			_volume: { type: Number },
+			_muted: { type: Boolean, attribute: false },
+			_playing: { type: Boolean, attribute: false },
+			_recentlyShowedCustomControls: { type: Boolean, attribute: false },
+			_secondsDuration: { type: Number, attribute: false },
+			_secondsElapsed: { type: Number, attribute: false },
+			_speed: { type: Number, attribute: false },
+			_usingSpeedContainer: { type: Boolean, attribute: false },
+			_usingVolumeContainer: { type: Boolean, attribute: false },
+			_volume: { type: Number, attribute: false },
 		};
 	}
 
 	static get styles() {
 		return css`
+			:host {
+				display: block;
+			}
+
+			:host([hidden]) {
+				display: none;
+			}
+
 			#d2l-labs-media-player-video-container {
 				background-color: black;
 				position: relative;
@@ -66,6 +82,7 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 
 			#d2l-labs-media-player-buttons {
 				align-items: center;
+				direction: ltr;
 				display: flex;
 				flex-direction: row;
 				justify-content: space-between;
@@ -76,10 +93,11 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 			}
 
 			.d2l-labs-media-player-control-element {
-				border-radius: 4px;
-				font-size: 1rem;
 				margin: 0 2px;
-				padding: 10px 10px;
+				padding: 0;
+				height: 43px;
+				position: relative;
+				width: 42px;
 			}
 
 			.d2l-labs-media-player-control-element:hover {
@@ -87,8 +105,11 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 				cursor: pointer;
 			}
 
+			#d2l-labs-media-player-time {
+				margin: 0 12px;
+			}
+
 			#d2l-labs-media-player-time:hover {
-				background: rgba(255, 255, 255, 0);
 				cursor: auto;
 			}
 
@@ -97,9 +118,16 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 			}
 
 			.d2l-labs-media-player-button {
+				border-radius: 4px;
 				background-color: transparent;
-				border: none;
+				border: 3px solid transparent;
 				outline: none;
+				width: 100%;
+				height: 100%;
+			}
+
+			.d2l-labs-media-player-button:focus {
+				border: 3px solid white;
 			}
 
 			.d2l-labs-media-player-button:hover {
@@ -112,7 +140,7 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 
 			#d2l-labs-media-player-volume-level-container {
 				bottom: 35px;
-				left: 27px;
+				left: -17px;
 				position: absolute;
 				width: 75px;
 			}
@@ -121,10 +149,9 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 				background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
 				border-radius: 0px 5px 5px 0px;
 				height: 38px;
-				left: 36px;
+				left: 32px;
 				padding: 0px 10px;
 				position: relative;
-				top: 2px;
 				width: 125px;
 			}
 
@@ -146,25 +173,26 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 			}
 
 			#d2l-labs-media-player-speed-button {
+				font-size: 1rem;
 				position: relative;
 				z-index: 1;
 			}
 
 			#d2l-labs-media-player-speed-level-container {
 				bottom: 32px;
-				height: 20px;
+				height: 16px;
 				position: absolute;
-				width: 50px;
+				right: -25px;
+				width: 100px;
 			}
 
 			#d2l-labs-media-player-speed-level-background {
 				background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
 				border-radius: 5px 5px 0px 0px;
-				bottom: 20px;
+				bottom: 16px;
 				display: flex;
 				flex-direction: column;
-				height: 230px;
-				left: -33px;
+				height: 275px;
 				position: absolute;
 				width: 110px;
 			}
@@ -185,14 +213,10 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 				transform: rotate(-90deg);
 			}
 
-			@media only screen and (max-device-width: 520px) {
+			@media (max-width: 520px) {
 				#d2l-labs-media-player-speed-level-background {
-					background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
-					border-radius: 5px 5px 0px 0px;
-					bottom: 20px;
-					height: 140px;
-					left: -17px;
-					position: absolute;
+					left: 15px;
+					height: 160px;
 					width: 80px;
 				}
 
@@ -235,114 +259,95 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 		return str;
 	}
 
-	static get _hideDelay() {
-		return 2000;
-	}
-
-	static get _keyBindings() {
-		return {
-			play: ' ',
-			mute: 'm',
-			fullscreen: 'f'
-		};
-	}
-
-	static get _seekBarUpdatePeriodMs() {
-		return 250;
-	}
-
-	static get _timeoutForDoubleClickMs() {
-		return 500;
-	}
-
 	constructor() {
 		super();
 
-		this._hidingControls = true;
-		this._hoveringSpeedContainer = false;
 		this._hoveringVideoControls = false;
-		this._hoveringVolumeContainer = false;
 		this._muted = false;
 		this._playing = false;
+		this._recentlyShowedCustomControls = false;
 		this._secondsDuration = 1;
 		this._secondsElapsed = 0;
 		this._speed = 1;
+		this._usingSpeedContainer = false;
+		this._usingVolumeContainer = false;
 		this._videoClicked = false;
-		this._videoContainerStyle = { cursor: 'auto' };
 		this._volume = 1;
 
 		this._listenForKeyboard = this._listenForKeyboard.bind(this);
 	}
 
 	render() {
+		const fullscreenIcon = screenfull.isFullscreen ? 'tier1:smallscreen' : 'tier1:fullscreen';
+		const playIcon = this._playing ? 'tier1:pause' : 'tier1:play';
+		const volumeIcon = this._muted ? 'tier1:volume-muted' : 'tier1:volume';
+
+		const fullscreenTooltip = `${screenfull.isFullscreen ? this.localize('exitFullscreen') : this.localize('fullscreen')} (${KEY_BINDINGS.fullscreen})`;
+		const playTooltip = `${this._playing ? this.localize('pause') : this.localize('play')} (${this.localize('spacebar')})`;
+		const volumeTooltip = `${this._muted ? this.localize('unmute') : this.localize('mute')} (${KEY_BINDINGS.mute})`;
+
+		const videoContainerStyle = { cursor: nativeControls || !this._hidingCustomControls() ? 'auto' : 'none' };
+
 		return html`
-		<div id="d2l-labs-media-player-video-container" style=${styleMap(this._videoContainerStyle)} ?hidden="${this.src === undefined}" @mousemove=${this._showControlsTemporarily}>
+		<div id="d2l-labs-media-player-video-container" style=${styleMap(videoContainerStyle)} ?hidden="${this.src === undefined}" @mousemove=${() => this._showControls(true)}>
 			<video ?controls="${nativeControls}" id="d2l-labs-media-player-video" preload="metadata" @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._onLoadedMetadata} @loadeddata=${this._onLoadedData} @click=${this._onVideoClick} @volumechange=${this._onVolumeChange}>
 				<source src="${this.src}">
 			</video>
 
-			<div id="d2l-labs-media-player-video-controls" ?hidden="${nativeControls || (this._hidingControls)}" @mouseenter=${this._startHoveringControls} @mouseleave=${this._stopHoveringControls}>
+			<div id="d2l-labs-media-player-video-controls" ?hidden="${this._hidingCustomControls()}" @mouseenter=${this._startHoveringControls} @mouseleave=${this._stopHoveringControls}>
 				<d2l-seek-bar fullWidth solid id="d2l-labs-media-player-seek-bar" value="${Math.floor(this._secondsElapsed / this._secondsDuration * 100)}" aria-label="SeekBar" aria-valuenow="${Math.floor(this._secondsElapsed / this._secondsDuration * 100)}" @drag-end=${this._onDragEndSeek} @position-change=${this._onPositionChangeSeek}></d2l-seek-bar>
 				<div id="d2l-labs-media-player-buttons">
-					<button class="d2l-labs-media-player-control-element d2l-labs-media-player-button" id="d2l-labs-media-player-play-button" title="${this._getPlayTooltip()}" @click=${this._togglePlay}>
-						<d2l-icon class="d2l-labs-media-player-control-display" icon="${this._getPlayIcon()}"></d2l-icon>
-					</button>
+					<div class="d2l-labs-media-player-control-element">
+						<button class="d2l-labs-media-player-button" id="d2l-labs-media-player-play-button" title="${playTooltip}" @click=${this._togglePlay}>
+							<d2l-icon class="d2l-labs-media-player-control-display" icon="${playIcon}"></d2l-icon>
+						</button>
+					</div>
 
-					<div class="d2l-labs-media-player-control-element" id="d2l-labs-media-player-volume-container" @mouseenter=${this._startHoveringVolumeContainer} @mouseleave=${this._stopHoveringVolumeContainer}>
-						<button class="d2l-labs-media-player-button" id="d2l-labs-media-player-volume-button" title="${this._getMuteTooltip()}" @click=${this._toggleMute}>
-							<d2l-icon class="d2l-labs-media-player-control-display" icon="${this._getVolumeIcon()}"></d2l-icon>
+					<div class="d2l-labs-media-player-control-element" id="d2l-labs-media-player-volume-container" @mouseenter=${() => this._useVolumeContainer(true)} @mouseleave=${() => this._useVolumeContainer(false)}>
+						<button class="d2l-labs-media-player-button" id="d2l-labs-media-player-volume-button" title="${volumeTooltip}" @click=${this._toggleMute} @focus=${() => this._useVolumeContainer(true)}} @focusout=${() => this._useVolumeContainer(false)}>
+							<d2l-icon class="d2l-labs-media-player-control-display" icon="${volumeIcon}"></d2l-icon>
 						</button>
 
-						<div class="d2l-labs-media-player-rotated" id="d2l-labs-media-player-volume-level-container" ?hidden="${!this._hoveringVolumeContainer}">
+						<div class="d2l-labs-media-player-rotated" id="d2l-labs-media-player-volume-level-container" ?hidden="${!this._usingVolumeContainer}">
 							<div id="d2l-labs-media-player-volume-level-background">
-								<d2l-seek-bar solid id="d2l-labs-media-player-volume-level" vertical="" value="${Math.round(this._volume * 100)}" @drag-end=${this._onDragEndVolume} @position-change=${this._onPositionChangeVolume}></d2l-seek-bar>
+								<d2l-seek-bar solid id="d2l-labs-media-player-volume-level" vertical="" value="${Math.round(this._volume * 100)}" @drag-end=${this._onDragEndVolume} @position-change=${this._onPositionChangeVolume} @focus=${() => this._useVolumeContainer(true)} @focusout=${() => this._useVolumeContainer(false)}></d2l-seek-bar>
 							</div>
 						</div>
 					</div>
 
-					<div class="d2l-labs-media-player-control-element d2l-labs-media-player-control-display" id="d2l-labs-media-player-time">
+					<div class="d2l-labs-media-player-control-display" id="d2l-labs-media-player-time">
 						${MediaPlayer._formatTime(this._secondsElapsed)} / ${MediaPlayer._formatTime(this._secondsDuration)}
 					</div>
 
 					<div id="d2l-labs-media-player-flex-filler"></div>
 
-					<div @mouseenter=${this._startHoveringSpeedContainer} @mouseleave=${this._stopHoveringSpeedContainer}>
-						<button class="d2l-labs-media-player-control-element d2l-labs-media-player-control-display d2l-labs-media-player-button" id="d2l-labs-media-player-speed-button">
-							${this._speed}x
+					<div class="d2l-labs-media-player-control-element" @mouseenter=${() => this._useSpeedContainer(true)} @mouseleave=${() => this._useSpeedContainer(false)}>
+						<button class="d2l-labs-media-player-control-display d2l-labs-media-player-button" id="d2l-labs-media-player-speed-button" @focus=${() => this._useSpeedContainer(true)} @focusout=${() => this._useSpeedContainer(false)}>
+							${this._speed}
 						</button>
 
-						<div id="d2l-labs-media-player-speed-level-container" ?hidden="${!this._hoveringSpeedContainer}">
+						<div id="d2l-labs-media-player-speed-level-container" ?hidden="${!this._usingSpeedContainer}">
 							<div id="d2l-labs-media-player-speed-level-background">
-								<button class="d2l-labs-media-player-button" value="0.25" @click=${this._updatePlaybackRate}>0.25x</button>
-								<button class="d2l-labs-media-player-button" value="0.5" @click=${this._updatePlaybackRate}>0.5x</button>
-								<button class="d2l-labs-media-player-button" value="0.75" @click=${this._updatePlaybackRate}>0.75x</button>
-								<button class="d2l-labs-media-player-button" value="1" @click=${this._updatePlaybackRate}>Normal</button>
-								<button class="d2l-labs-media-player-button" value="1.25" @click=${this._updatePlaybackRate}>1.25x</button>
-								<button class="d2l-labs-media-player-button" value="1.5" @click=${this._updatePlaybackRate}>1.5x</button>
-								<button class="d2l-labs-media-player-button" value="2" @click=${this._updatePlaybackRate}>2x</button>
+								<button class="d2l-labs-media-player-button" value="0.25" @click=${this._updatePlaybackRate} @focus=${() => this._useSpeedContainer(true)} @focusout=${() => this._useSpeedContainer(false)}>0.25</button>
+								<button class="d2l-labs-media-player-button" value="0.5" @click=${this._updatePlaybackRate} @focus=${() => this._useSpeedContainer(true)} @focusout=${() => this._useSpeedContainer(false)}>0.5</button>
+								<button class="d2l-labs-media-player-button" value="0.75" @click=${this._updatePlaybackRate} @focus=${() => this._useSpeedContainer(true)} @focusout=${() => this._useSpeedContainer(false)}>0.75</button>
+								<button class="d2l-labs-media-player-button" value="1" @click=${this._updatePlaybackRate} @focus=${() => this._useSpeedContainer(true)} @focusout=${() => this._useSpeedContainer(false)}>${this.localize('normal')}</button>
+								<button class="d2l-labs-media-player-button" value="1.25" @click=${this._updatePlaybackRate} @focus=${() => this._useSpeedContainer(true)} @focusout=${() => this._useSpeedContainer(false)}>1.25</button>
+								<button class="d2l-labs-media-player-button" value="1.5" @click=${this._updatePlaybackRate} @focus=${() => this._useSpeedContainer(true)} @focusout=${() => this._useSpeedContainer(false)}>1.5</button>
+								<button class="d2l-labs-media-player-button" value="2" @click=${this._updatePlaybackRate} @focus=${() => this._useSpeedContainer(true)} @focusout=${() => this._useSpeedContainer(false)}>2</button>
 							</div>
 						</div>
 					</div>
 
-					<button ?hidden="${!this._fullscreenEnabled()}" class="d2l-labs-media-player-control-element d2l-labs-media-player-button" title="${this._getFullscreenTooltip()}" @click=${this._toggleFullscreen}>
-						<d2l-icon class="d2l-labs-media-player-control-display" icon="${this._getFullscreenIcon()}"></d2l-icon>
-					</button>
+					<div class="d2l-labs-media-player-control-element">
+						<button ?hidden="${!this._fullscreenEnabled()}" class="d2l-labs-media-player-button" title="${fullscreenTooltip}" @click=${this._toggleFullscreen}>
+							<d2l-icon class="d2l-labs-media-player-control-display" icon="${fullscreenIcon}"></d2l-icon>
+						</button>
+					</div>
 				</div>
 			</div>
 		</div>
 		`;
-	}
-
-	connectedCallback() {
-		super.connectedCallback();
-
-		document.addEventListener('keydown', this._listenForKeyboard);
-	}
-
-	disconnectedCallback() {
-		super.disconnectedCallback();
-
-		document.removeEventListener('keydown', this._listenForKeyboard);
 	}
 
 	firstUpdated() {
@@ -353,32 +358,10 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 		this._videoContainer = this.shadowRoot.getElementById('d2l-labs-media-player-video-container');
 		this._volumeLevel = this.shadowRoot.getElementById('d2l-labs-media-player-volume-level');
 
-		this._showControlsTemporarily();
 		this._updateTimeElapsed();
-	}
 
-	_getFullscreenIcon() {
-		return screenfull.isFullscreen ? 'tier1:smallscreen' : 'tier1:fullscreen';
-	}
-
-	_getPlayIcon() {
-		return this._playing ? 'tier1:pause' : 'tier1:play';
-	}
-
-	_getPlayTooltip() {
-		return `${this._playing ? this.localize('pause') : this.localize('play')} (${this.localize('spacebar')})`;
-	}
-
-	_getFullscreenTooltip() {
-		return `${screenfull.isFullscreen ? this.localize('exitFullscreen') : this.localize('fullscreen')} (${MediaPlayer._keyBindings.fullscreen})`;
-	}
-
-	_getVolumeIcon() {
-		return this._muted ? 'tier1:volume-muted' : 'tier1:volume';
-	}
-
-	_getMuteTooltip() {
-		return `${this._muted ? this.localize('unmute') : this.localize('mute')} (${MediaPlayer._keyBindings.mute})`;
+		this._videoContainer.addEventListener('keydown', this._listenForKeyboard);
+		this._videoContainer.addEventListener('click', () => this._videoContainer.focus());
 	}
 
 	_onDragEndSeek() {
@@ -390,7 +373,7 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 
 	_onPositionChangeSeek() {
 		this._updateCurrentTimeOfVideo(this._seekBar.immediateValue / 100);
-		this._showControlsTemporarily();
+		this._showControls(true);
 	}
 
 	_updateCurrentTimeOfVideo(fraction) {
@@ -426,6 +409,7 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 
 	_onVideoClick() {
 		this._togglePlay();
+		this._showControls(true);
 
 		if (this._videoClicked) {
 			this._toggleFullscreen();
@@ -434,7 +418,7 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 				if (this._videoClicked) {
 					this._videoClicked = false;
 				}
-			}, MediaPlayer._timeoutForDoubleClickMs);
+			}, TIMEOUT_FOR_DOUBLE_CLICK_MS);
 		}
 
 		this._videoClicked = !this._videoClicked;
@@ -484,12 +468,13 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 	_updateTimeElapsed() {
 		this._secondsElapsed = this._video.currentTime;
 
-		setTimeout(() => this._updateTimeElapsed(), MediaPlayer._seekBarUpdatePeriodMs);
+		setTimeout(() => this._updateTimeElapsed(), SEEK_BAR_UPDATE_PERIOD_MS);
 	}
 
 	_listenForKeyboard(e) {
+		this._showControls(true);
 		switch (e.key) {
-			case MediaPlayer._keyBindings.play:
+			case KEY_BINDINGS.play:
 				if (!this.shadowRoot.activeElement || this.shadowRoot.activeElement.id !== 'd2l-labs-media-player-play-button') {
 					// Pressing spacebar fires a 'click' event on the focused element. If
 					// the play button is focused, hitting spacebar would toggle play twice, doing
@@ -497,67 +482,58 @@ class MediaPlayer extends InternalLocalizeMixin(LitElement) {
 					this._togglePlay();
 				}
 
-				this._showControlsTemporarily();
 				break;
-			case MediaPlayer._keyBindings.mute:
+			case KEY_BINDINGS.mute:
 				this._toggleMute();
-				this._showControlsTemporarily();
 				break;
-			case MediaPlayer._keyBindings.fullscreen:
+			case KEY_BINDINGS.fullscreen:
 				this._toggleFullscreen();
-				this._showControlsTemporarily();
 				break;
 		}
 	}
 
 	_startHoveringControls() {
 		this._hoveringVideoControls = true;
-		this._showControls();
+		this._showControls(false);
 	}
 
 	_stopHoveringControls() {
 		this._hoveringVideoControls = false;
-		this._showControlsTemporarily();
+		this._showControls(true);
 	}
 
-	_showControls() {
-		this._hidingControls = false;
-		this.lastTimeEntered = Date.now();
-		this._videoContainerStyle = { ...this._videoContainerStyle, cursor: 'auto' };
-	}
+	_showControls(temporarily) {
+		this._recentlyShowedCustomControls = true;
+		clearTimeout(this._showControlsTimeout);
 
-	_showControlsTemporarily() {
-		this._showControls();
-
-		setTimeout(() => {
-			if (Date.now() - this.lastTimeEntered >= MediaPlayer._hideDelay && !this._hoveringVideoControls && this._playing) {
-				this._hidingControls = true;
-				this._videoContainerStyle = { ...this._videoContainerStyle, cursor: 'none' };
-			}
-		}, MediaPlayer._hideDelay);
+		if (temporarily) {
+			this._showControlsTimeout = setTimeout(() => {
+				this._recentlyShowedCustomControls = false;
+			}, HIDE_DELAY_MS);
+		}
 	}
 
 	_updatePlaybackRate(e) {
 		const rate = e.target.value;
 		this._speed = rate;
 		this._video.playbackRate = rate;
-		this._hoveringSpeedContainer = false;
+		this._useSpeedContainer(false);
 	}
 
-	_startHoveringSpeedContainer() {
-		this._hoveringSpeedContainer = true;
+	_useSpeedContainer(using) {
+		setTimeout(() => {
+			this._usingSpeedContainer = using;
+		}, 0);
 	}
 
-	_stopHoveringSpeedContainer() {
-		this._hoveringSpeedContainer = false;
+	_useVolumeContainer(using) {
+		setTimeout(() => {
+			this._usingVolumeContainer = using;
+		}, 0);
 	}
 
-	_startHoveringVolumeContainer() {
-		this._hoveringVolumeContainer = true;
-	}
-
-	_stopHoveringVolumeContainer() {
-		this._hoveringVolumeContainer = false;
+	_hidingCustomControls() {
+		return nativeControls || (this._playing && !this._recentlyShowedCustomControls);
 	}
 }
 
