@@ -6,6 +6,7 @@ export default {
 	mute: 'Mute',
 	pause: 'Pause',
 	play: 'Play',
+	settings: 'settings',
 	spacebar: 'spacebar',
 	speed: 'speed',
 	unmute: 'Unmute'

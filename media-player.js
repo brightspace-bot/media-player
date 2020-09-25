@@ -337,7 +337,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			</video>
 
 			<div class="${this._hidingCustomControls() ? 'hidden' : ''}" id="d2l-labs-media-player-video-controls" ?hidden="${NATIVE_CONTROLS}" @mouseenter=${this._startHoveringControls} @mouseleave=${this._stopHoveringControls}>
-				<d2l-seek-bar fullWidth solid id="d2l-labs-media-player-seek-bar" value="${Math.floor(this.currentTime / this._duration * 100)}" aria-label="SeekBar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.floor(this.currentTime / this._duration * 100)}" @drag-start=${this._onDragStartSeek} @drag-end=${this._onDragEndSeek} @position-change=${this._onPositionChangeSeek}></d2l-seek-bar>
+				<d2l-seek-bar fullWidth solid id="d2l-labs-media-player-seek-bar" value="${Math.floor(this.currentTime / this._duration * 100)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.floor(this.currentTime / this._duration * 100)}" @drag-start=${this._onDragStartSeek} @drag-end=${this._onDragEndSeek} @position-change=${this._onPositionChangeSeek}></d2l-seek-bar>
 				<div id="d2l-labs-media-player-buttons">
 					<div class="d2l-labs-media-player-control-element">
 						<button class="d2l-labs-media-player-button" id="d2l-labs-media-player-play-button" title="${playTooltip}" aria-label="${playTooltip}" @click=${this._togglePlay}>
@@ -364,7 +364,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 					<div class="d2l-labs-media-player-flex-filler"></div>
 
 					<div class="d2l-labs-media-player-control-element">
-						<button class="d2l-labs-media-player-control-display d2l-labs-media-player-button" id="d2l-labs-media-player-settings-button" label="playback" aria-label="playback" role="${this.localize('menu')}" @click=${this._settingsButtonClick}>
+						<button class="d2l-labs-media-player-control-display d2l-labs-media-player-button" id="d2l-labs-media-player-settings-button" label="${this.localize('settings')}" aria-label="${this.localize('settings')}" role="${this.localize('menu')}" @click=${this._settingsButtonClick}>
 							<d2l-icon class="d2l-labs-media-player-control-display" icon="tier1:gear"></d2l-icon>
 						</button>
 
