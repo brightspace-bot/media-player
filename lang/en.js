@@ -1,10 +1,12 @@
 export default {
+	default: 'Default',
 	exitFullscreen: 'Exit fullscreen',
 	fullscreen: 'Fullscreen',
+	menu: 'menu',
 	mute: 'Mute',
-	normal: 'Normal',
 	pause: 'Pause',
 	play: 'Play',
 	spacebar: 'spacebar',
+	speed: 'speed',
 	unmute: 'Unmute'
 };

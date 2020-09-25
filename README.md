@@ -41,9 +41,63 @@ npm install @brightspace-ui-labs/media-player
 
 **Properties:**
 
-| Property | Type | Description |
-|--|--|--|
-| src | string | URL of the media to play. |
+| Property | Type | Default | Description |
+|--|--|--|--|
+| autoplay | boolean | false | If set, will play the media as soon as it has been loaded. |
+| loop | boolean | false | If set, once the media has finished playing it will replay from the beginning. |
+| poster | string | null | URL of the image to display in place of the media before it has loaded. |
+| src | string | null | URL of the media to play. |
+
+```
+<!-- Render a media player with a source file and loop the media when it reaches the end -->
+
+<d2l-labs-media-player loop src="./local-video.mp4"></d2l-labs-media-player>
+```
+
+**Attributes:**
+
+| Attribute | Type | Get/Set | Description |
+|--|--|--|--|
+| currentTime | number | Get & Set | Current time playback time of the media in seconds. |
+| duration | number | Get | Total duration of the media in seconds. |
+
+```
+// Programatically determine the current playback time of the media player
+
+console.log(`Current playback time of the media player = ${this.document.querySelector('d2l-labs-media-player').currentTime} sec`);
+```
+
+**Methods:**
+
+| Method | Description |
+|--|--|
+| play() | Begins playing the media. Ignored if the media is already playing.
+| pause() | Pauses the media. Ignored if the media is already paused.
+
+```
+// Programatically pause the media player
+
+this.document.querySelector('d2l-labs-media-player').pause();
+```
+
+**Events:**
+
+| Event | Description |
+|--|--|
+| ended | Dispatched when the media has reached the end of its duration. |
+| loadeddata | Dispatched when the media at the current playback position has finished loading. Often the first frame. |
+| loadedmetadata | Dispatched when the metadata for the media has finished loading. |
+| play | Dispatched when the media begins playing. |
+| pause | Dispatched when the media is paused. |
+| timeupdate | Dispatched when the currentTime of the media player has been updated. |
+
+```
+// Listen for the loadeddata event
+
+this.document.querySelector('d2l-labs-media-player').addEventListener('loadeddata', () => {
+	console.log('loadeddata event has been dispatched');
+});
+```
 
 ## Developing, Testing and Contributing
 
