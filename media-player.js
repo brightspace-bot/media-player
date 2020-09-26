@@ -14,6 +14,7 @@ import { InternalLocalizeMixin } from './src/mixins/internal-localize-mixin';
 import ResizeObserver from 'resize-observer-polyfill';
 import { RtlMixin } from '@brightspace-ui/core/mixins/rtl-mixin';
 import { styleMap } from 'lit-html/directives/style-map';
+import { ifDefined } from 'lit-html/directives/if-defined';
 
 const FULLSCREEN_ENABLED = screenfull.isEnabled;
 const HIDE_DELAY_MS = 3000;
@@ -331,9 +332,9 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		const volumeLevelContainerClass = !this._usingVolumeContainer || this._hidingCustomControls() ? 'hidden' : '';
 
 		return html`
-		<div id="d2l-labs-media-player-video-container" style=${styleMap(videoContainerStyle)} ?hidden="${this.src === null}" @mousemove=${this._onVideoContainerMouseMove} @click=${this._videoContainerClicked} @keydown=${this._listenForKeyboard}>
+		<div id="d2l-labs-media-player-video-container" style=${styleMap(videoContainerStyle)} ?hidden="${!this.src}" @mousemove=${this._onVideoContainerMouseMove} @click=${this._videoContainerClicked} @keydown=${this._listenForKeyboard}>
 			<video ?controls="${NATIVE_CONTROLS}" id="d2l-labs-media-player-video" ?autoplay="${this.autoplay}" ?loop="${this.loop}" poster="${this.poster ? this.poster : ''}" preload="metadata" @click=${this._onVideoClick} @ended=${this._onEnded} @loadeddata=${this._onLoadedData} @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._onLoadedMetadata} @timeupdate=${this._onTimeUpdate} @volumechange=${this._onVolumeChange}>
-				<source src="${this.src}">
+				<source src="${ifDefined(this.src)}">
 			</video>
 
 			<div class="${this._hidingCustomControls() ? 'hidden' : ''}" id="d2l-labs-media-player-video-controls" ?hidden="${NATIVE_CONTROLS}" @mouseenter=${this._startHoveringControls} @mouseleave=${this._stopHoveringControls}>
@@ -402,6 +403,8 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 
 	firstUpdated() {
 		super.firstUpdated();
+
+		if (!this.src) console.warn('d2l-labs-media-player component requires src text');
 
 		this._playButton = this.shadowRoot.getElementById('d2l-labs-media-player-play-button');
 		this._seekBar = this.shadowRoot.getElementById('d2l-labs-media-player-seek-bar');

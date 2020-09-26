@@ -43,10 +43,10 @@ npm install @brightspace-ui-labs/media-player
 
 | Property | Type | Default | Description |
 |--|--|--|--|
-| autoplay | boolean | false | If set, will play the media as soon as it has been loaded. |
-| loop | boolean | false | If set, once the media has finished playing it will replay from the beginning. |
-| poster | string | null | URL of the image to display in place of the media before it has loaded. |
-| src | string | null | URL of the media to play. |
+| autoplay | Boolean | false | If set, will play the media as soon as it has been loaded. |
+| loop | Boolean | false | If set, once the media has finished playing it will replay from the beginning. |
+| poster | String | null | URL of the image to display in place of the media before it has loaded. |
+| src | String, required |  | URL of the media to play. |
 
 ```
 <!-- Render a media player with a source file and loop the media when it reaches the end -->
@@ -58,8 +58,8 @@ npm install @brightspace-ui-labs/media-player
 
 | Attribute | Type | Get/Set | Description |
 |--|--|--|--|
-| currentTime | number | Get & Set | Current time playback time of the media in seconds. |
-| duration | number | Get | Total duration of the media in seconds. |
+| currentTime | Number | Get & Set | Current time playback time of the media in seconds. |
+| duration | Number | Get | Total duration of the media in seconds. |
 
 ```
 // Programatically determine the current playback time of the media player
