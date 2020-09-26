@@ -10,11 +10,11 @@ import '@brightspace-ui/core/components/menu/menu-item.js';
 import '@brightspace-ui/core/components/menu/menu-item-radio.js';
 import './media-player-menu-item.js';
 import { css, html, LitElement } from 'lit-element/lit-element.js';
+import { ifDefined } from 'lit-html/directives/if-defined';
 import { InternalLocalizeMixin } from './src/mixins/internal-localize-mixin';
 import ResizeObserver from 'resize-observer-polyfill';
 import { RtlMixin } from '@brightspace-ui/core/mixins/rtl-mixin';
 import { styleMap } from 'lit-html/directives/style-map';
-import { ifDefined } from 'lit-html/directives/if-defined';
 
 const FULLSCREEN_ENABLED = screenfull.isEnabled;
 const HIDE_DELAY_MS = 3000;
