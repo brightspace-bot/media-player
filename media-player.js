@@ -255,6 +255,26 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			#d2l-labs-media-player-settings-menu-container.hidden {
 				display: none;
 			}
+
+			#d2l-labs-media-player-audio-bars {
+				align-items: center;
+				display: flex;
+				flex-wrap: nowrap;
+				height: 8.5rem;
+				justify-content: center;
+				width: 100%;
+			}
+
+			#d2l-labs-media-player-audio-bar-container {
+				display: flex;
+				flex-direction: column;
+				height: 2rem;
+			}
+
+			.d2l-labs-media-player-audio-bar {
+				margin: 0 0.1rem;
+				width: 0.25rem;
+			}
 		`;
 	}
 
@@ -361,11 +381,11 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 				<source src="${this.src}"></source>
 			</audio>
 
-			<div style="height: 8.5rem; width: 100%; display: flex; align-items: center; justify-content: center; flex-wrap: nowrap;">
+			<div id="d2l-labs-media-player-audio-bars">
 				${this._audioBars.map(audioBar => html`
-					<div style="display: flex; height: 2rem; flex-direction: column;">
-						<div style="flex: auto;"></div>
-						<div style="height: ${audioBar.height}%; background-color: rgba(${audioBar.red}, ${audioBar.green}, ${audioBar.blue}, 1); width: 0.25rem; margin: 0 0.1rem;"></div>
+					<div id="d2l-labs-media-player-audio-bar-container">
+						<div class="d2l-labs-media-player-flex-filler"></div>
+						<div class="d2l-labs-media-player-audio-bar" style=${styleMap({ backgroundColor: `rgba(${audioBar.red}, ${audioBar.green}, ${audioBar.blue}, 1)`, height: `${audioBar.height}%` })}></div>
 					</div>
 				`)}
 			</div>
