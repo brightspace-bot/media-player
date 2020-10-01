@@ -2,9 +2,6 @@
 import '@brightspace-ui/core/components/icons/icon.js';
 import '@d2l/seek-bar/d2l-seek-bar.js';
 import './node_modules/screenfull/dist/screenfull.js';
-import '@brightspace-ui/core/components/dropdown/dropdown.js';
-import '@brightspace-ui/core/components/dropdown/dropdown-menu.js';
-import '@brightspace-ui/core/components/dropdown/dropdown-more.js';
 import '@brightspace-ui/core/components/menu/menu.js';
 import '@brightspace-ui/core/components/menu/menu-item.js';
 import '@brightspace-ui/core/components/menu/menu-item-radio.js';
@@ -16,6 +13,12 @@ import ResizeObserver from 'resize-observer-polyfill';
 import { RtlMixin } from '@brightspace-ui/core/mixins/rtl-mixin';
 import { styleMap } from 'lit-html/directives/style-map';
 
+const AUDIO_BARS_GRADIENT_COLOURS = {
+	start: 'DAE4EB',
+	middle: 'A7D5F6',
+	end: '8EB5D1'
+};
+const AUDIO_BARS_UPDATE_PERIOD_MS = 50;
 const FULLSCREEN_ENABLED = screenfull.isEnabled;
 const HIDE_DELAY_MS = 3000;
 const KEY_BINDINGS = {
@@ -36,8 +39,11 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			loop: { type: Boolean },
 			poster: { type: String },
 			src: { type: String },
+			_audioBars: { type: Array, attribute: false },
 			_currentTime: { type: Number, attribute: false },
 			_duration: { type: Number, attribute: false },
+			_isAudio: { type: Boolean, attribute: false },
+			_isVideo: { type: Boolean, attribute: false },
 			_muted: { type: Boolean, attribute: false },
 			_playing: { type: Boolean, attribute: false },
 			_recentlyShowedCustomControls: { type: Boolean, attribute: false },
@@ -59,8 +65,8 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 				display: none;
 			}
 
-			#d2l-labs-media-player-video-container {
-				background-color: var(--d2l-color-black);
+			#d2l-labs-media-player-media-container {
+				background-color: black;
 				min-height: 11rem;
 				overflow: hidden;
 				position: relative;
@@ -214,8 +220,9 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			#d2l-labs-media-player-settings-menu-container {
 				display: flex;
 				flex-direction: column;
-				position: relative;
-				right: 7.5rem;
+				position: absolute;
+				right: 0.2rem;
+				top: 0.2rem;
 				width: 11.75rem;
 			}
 
@@ -284,13 +291,25 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 
 		this.autoplay = false;
 		this.loop = false;
-		this.poster = null;
-		this.src = null;
 
+		const numAudioBars = 50;
+		this._audioBars = [];
+		for (let i = 0; i < numAudioBars; i++) {
+			this._audioBars.push({
+				blue: 0,
+				green: 0,
+				red: 0,
+				height: Math.round(Math.random() * 70 + 30)
+			});
+		}
 		this._currentTime = 0;
+		this._determiningSourceType = true;
 		this._duration = 1;
 		this._hoveringVideoControls = false;
+		this._isAudio = false;
+		this._isVideo = false;
 		this._muted = false;
+		this._playbackSpeeds = ['0.25', '0.5', '0.75', '1.0', '1.25', '1.5', '2.0'];
 		this._playing = false;
 		this._recentlyShowedCustomControls = false;
 		this._settingsMenuContainerHeight = '';
@@ -307,7 +326,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 
 	set currentTime(time) {
 		this._currentTime = time;
-		this._video.currentTime = time;
+		this._media.currentTime = time;
 	}
 
 	get duration() {
@@ -327,18 +346,39 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			bottom: this._settingsMenuContainerBottom,
 			height: this._settingsMenuContainerHeight
 		};
-		const videoContainerStyle = { cursor: NATIVE_CONTROLS || !this._hidingCustomControls() ? 'auto' : 'none' };
+		const mediaContainerStyle = { cursor: NATIVE_CONTROLS || !this._hidingCustomControls() ? 'auto' : 'none' };
 
 		const volumeLevelContainerClass = !this._usingVolumeContainer || this._hidingCustomControls() ? 'hidden' : '';
 
-		return html`
-		<div id="d2l-labs-media-player-video-container" style=${styleMap(videoContainerStyle)} ?hidden="${!this.src}" @mousemove=${this._onVideoContainerMouseMove} @click=${this._videoContainerClicked} @keydown=${this._listenForKeyboard}>
-			<video ?controls="${NATIVE_CONTROLS}" id="d2l-labs-media-player-video" ?autoplay="${this.autoplay}" ?loop="${this.loop}" poster="${this.poster ? this.poster : ''}" preload="metadata" @click=${this._onVideoClick} @ended=${this._onEnded} @loadeddata=${this._onLoadedData} @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._onLoadedMetadata} @timeupdate=${this._onTimeUpdate} @volumechange=${this._onVolumeChange}>
-				<source src="${ifDefined(this.src)}">
+		const video = this._isVideo ? html`
+			<video ?controls="${NATIVE_CONTROLS}" id="d2l-labs-media-player-video" ?autoplay="${this.autoplay}" ?loop="${this.loop}" poster="${ifDefined(this.poster)}" preload="metadata" @click=${this._onVideoClick} @ended=${this._onEnded} @loadeddata=${this._onLoadedData} @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._onLoadedMetadata} @timeupdate=${this._onTimeUpdate} @volumechange=${this._onVolumeChange}>
+				<source src="${this.src}">
 			</video>
+		` : null;
+
+		const audioContentArea = this._isAudio ? html`
+			<audio id="d2l-labs-media-player-audio" ?controls="${NATIVE_CONTROLS}" ?autoplay="${this.autoplay}" crossorigin="anonymous" ?loop="${this.loop}" preload="metadata" @ended=${this._onEnded} @loadeddata=${this._onLoadedData} @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._onLoadedMetadata} @timeupdate=${this._onTimeUpdate} @volumechange=${this._onVolumeChange}>
+				<source src="${this.src}"></source>
+			</audio>
+
+			<div style="height: 8.5rem; width: 100%; display: flex; align-items: center; justify-content: center; flex-wrap: nowrap;">
+				${this._audioBars.map(audioBar => html`
+					<div style="display: flex; height: 2rem; flex-direction: column;">
+						<div style="flex: auto;"></div>
+						<div style="height: ${audioBar.height}%; background-color: rgba(${audioBar.red}, ${audioBar.green}, ${audioBar.blue}, 1); width: 0.25rem; margin: 0 0.1rem;"></div>
+					</div>
+				`)}
+			</div>
+		` : null;
+
+		return html`
+		<div id="d2l-labs-media-player-media-container" style=${styleMap(mediaContainerStyle)} @mousemove=${this._onVideoContainerMouseMove} @click=${this._mediaContainerClicked} @keydown=${this._listenForKeyboard}>
+			${video}
+
+			${audioContentArea}
 
 			<div class="${this._hidingCustomControls() ? 'hidden' : ''}" id="d2l-labs-media-player-video-controls" ?hidden="${NATIVE_CONTROLS}" @mouseenter=${this._startHoveringControls} @mouseleave=${this._stopHoveringControls}>
-				<d2l-seek-bar fullWidth solid id="d2l-labs-media-player-seek-bar" value="${Math.floor(this.currentTime / this._duration * 100)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.floor(this.currentTime / this._duration * 100)}" @drag-start=${this._onDragStartSeek} @drag-end=${this._onDragEndSeek} @position-change=${this._onPositionChangeSeek}></d2l-seek-bar>
+				<d2l-seek-bar fullWidth solid id="d2l-labs-media-player-seek-bar" value="${Math.floor(this.currentTime / this._duration * 100)}" aria-label="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.floor(this.currentTime / this._duration * 100)}" title="slider" @drag-start=${this._onDragStartSeek} @drag-end=${this._onDragEndSeek} @position-change=${this._onPositionChangeSeek}></d2l-seek-bar>
 				<div id="d2l-labs-media-player-buttons">
 					<div class="d2l-labs-media-player-control-element">
 						<button class="d2l-labs-media-player-button" id="d2l-labs-media-player-play-button" title="${playTooltip}" aria-label="${playTooltip}" @click=${this._togglePlay}>
@@ -353,7 +393,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 
 						<div id="d2l-labs-media-player-volume-level-container" class="${volumeLevelContainerClass}">
 							<div class="d2l-labs-media-player-rotated" id="d2l-labs-media-player-volume-level-background">
-								<d2l-seek-bar solid id="d2l-labs-media-player-volume-level" vertical="" value="${Math.round(this._volume * 100)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.floor(this._volume * 100)}" @position-change=${this._onPositionChangeVolume} @focus=${this._startUsingVolumeContainer} @focusout=${this._stopUsingVolumeContainer}></d2l-seek-bar>
+								<d2l-seek-bar solid id="d2l-labs-media-player-volume-level" vertical="true" value="${Math.round(this._volume * 100)}" aria-label="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.floor(this._volume * 100)}" title="slider" @position-change=${this._onPositionChangeVolume} @focus=${this._startUsingVolumeContainer} @focusout=${this._stopUsingVolumeContainer}></d2l-seek-bar>
 							</div>
 						</div>
 					</div>
@@ -364,58 +404,52 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 
 					<div class="d2l-labs-media-player-flex-filler"></div>
 
-					<div class="d2l-labs-media-player-control-element">
-						<button class="d2l-labs-media-player-control-display d2l-labs-media-player-button" id="d2l-labs-media-player-settings-button" label="${this.localize('settings')}" aria-label="${this.localize('settings')}" role="${this.localize('menu')}" @click=${this._settingsButtonClick}>
+					<div class="d2l-labs-media-player-control-element ${!this._isVideo ? 'd2l-labs-media-player-control-element-last' : ''}">
+						<button class="d2l-labs-media-player-control-display d2l-labs-media-player-button" id="d2l-labs-media-player-settings-button" label="${this.localize('settings')}" aria-label="${this.localize('settings')}" @click=${this._settingsButtonClick}>
 							<d2l-icon class="d2l-labs-media-player-control-display" icon="tier1:gear"></d2l-icon>
 						</button>
-
-						<div id="d2l-labs-media-player-settings-menu-container" class="${this._usingSettingsMenu ? '' : 'hidden'}" style=${styleMap(settingsMenuContainerStyle)}>
-							<div class="d2l-labs-media-player-flex-filler"></div>
-							<d2l-menu id="d2l-labs-media-player-settings-menu">
-								<div class="d2l-labs-media-player-menu-end"></div>
-								<d2l-labs-media-player-menu-item id="d2l-labs-media-player-playback-speeds" text="Playback speed" value="1.0" aria-valuenow="1.0" subMenu first>
-									<d2l-menu id="d2l-labs-media-player-playback-speeds-menu">
-										<d2l-menu-item-radio text="0.25" value="0.25"></d2l-menu-item-radio>
-										<d2l-menu-item-radio text="0.5" value="0.5"></d2l-menu-item-radio>
-										<d2l-menu-item-radio text="0.75" value="0.75"></d2l-menu-item-radio>
-										<d2l-menu-item-radio text="1.0 (${this.localize('default')})" value="1.0" selected></d2l-menu-item-radio>
-										<d2l-menu-item-radio text="1.25" value="1.25"></d2l-menu-item-radio>
-										<d2l-menu-item-radio text="1.5" value="1.5"></d2l-menu-item-radio>
-										<d2l-menu-item-radio text="2" value="2.0"></d2l-menu-item-radio>
-										<div class="d2l-labs-media-player-menu-end"></div>
-									</d2l-menu>
-								</d2l-labs-media-player-menu-item>
-								<div class="d2l-labs-media-player-menu-end"></div>
-							</d2l-menu>
-						</div>
 					</div>
 
-					<div id="d2l-labs-media-player-fullscreen" class="d2l-labs-media-player-control-element d2l-labs-media-player-control-element-last">
+					<div id="d2l-labs-media-player-fullscreen" class="d2l-labs-media-player-control-element d2l-labs-media-player-control-element-last" ?hidden="${!this._isVideo}">
 						<button ?hidden="${!FULLSCREEN_ENABLED}" class="d2l-labs-media-player-button" title="${fullscreenTooltip}" aria-label="${fullscreenTooltip}" @click=${this._toggleFullscreen}>
 							<d2l-icon class="d2l-labs-media-player-control-display" icon="${fullscreenIcon}"></d2l-icon>
 						</button>
 					</div>
 				</div>
 			</div>
+
+			<div id="d2l-labs-media-player-settings-menu-container" class="${this._usingSettingsMenu ? '' : 'hidden'}" style=${styleMap(settingsMenuContainerStyle)}>
+				<div class="d2l-labs-media-player-flex-filler"></div>
+				<d2l-menu id="d2l-labs-media-player-settings-menu">
+					<div class="d2l-labs-media-player-menu-end"></div>
+					<d2l-labs-media-player-menu-item id="d2l-labs-media-player-playback-speeds" text="Playback speed" value="1.0" aria-valuenow="1.0" subMenu first>
+						<d2l-menu id="d2l-labs-media-player-playback-speeds-menu">
+							${this._playbackSpeeds.map(speed => html`
+								<d2l-menu-item-radio text="${speed === '1.0' ? `1.0 (${this.localize('default')})` : speed}" value="${speed}"></d2l-menu-item-radio>
+							`)}
+						</d2l-menu>
+					</d2l-labs-media-player-menu-item>
+					<div class="d2l-labs-media-player-menu-end"></div>
+				</d2l-menu>
+			</div>
 		</div>
 		`;
 	}
 
-	firstUpdated() {
-		super.firstUpdated();
+	firstUpdated(changedProperties) {
+		super.firstUpdated(changedProperties);
 
 		if (!this.src) console.warn('d2l-labs-media-player component requires src text');
 
+		this._mediaContainer = this.shadowRoot.getElementById('d2l-labs-media-player-media-container');
 		this._playButton = this.shadowRoot.getElementById('d2l-labs-media-player-play-button');
 		this._seekBar = this.shadowRoot.getElementById('d2l-labs-media-player-seek-bar');
 		this._settingsMenuContainer = this.shadowRoot.getElementById('d2l-labs-media-player-settings-menu-container');
 		this._speedLevelBackground = this.shadowRoot.getElementById('d2l-labs-media-player-speed-level-background');
-		this._video = this.shadowRoot.getElementById('d2l-labs-media-player-video');
-		this._videoContainer = this.shadowRoot.getElementById('d2l-labs-media-player-video-container');
-		this._videoControls = this.shadowRoot.getElementById('d2l-labs-media-player-video-controls');
 		this._volumeLevel = this.shadowRoot.getElementById('d2l-labs-media-player-volume-level');
 
 		this._startUpdatingCurrentTime();
+		this._startChangingAudioBars();
 
 		new ResizeObserver((entries) => {
 			for (const entry of entries) {
@@ -423,28 +457,45 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 				const fontSize = getComputedStyle(document.documentElement).fontSize;
 				const pxPerRem = fontSize.substr(0, fontSize.indexOf('px'));
 
-				const settingsMenuContainerHeightPx = height - 3.75 * pxPerRem;
+				const settingsMenuContainerHeightPx = height - 2.7 * pxPerRem - 15;
 				this._settingsMenuContainerHeight = `${settingsMenuContainerHeightPx}px`;
-				this._settingsMenuContainerBottom = `${settingsMenuContainerHeightPx + 2.5 * pxPerRem + 12}px` ;
 			}
-		}).observe(this._videoContainer);
+		}).observe(this._mediaContainer);
 
 		this.shadowRoot.getElementById('d2l-labs-media-player-playback-speeds-menu').addEventListener('d2l-menu-item-change', (e) => {
-			this._video.playbackRate = e.target.value;
+			this._media.playbackRate = e.target.value;
 
 			this.shadowRoot.getElementById('d2l-labs-media-player-playback-speeds').value = e.target.value;
 		});
 	}
 
+	updated(changedProperties) {
+		super.updated(changedProperties);
+
+		if (changedProperties.has('src')) {
+			this._determineSourceType();
+		}
+
+		if (changedProperties.has('_isVideo') || changedProperties.has('_isAudio')) {
+			if (this._isVideo) {
+				this._media = this.shadowRoot.getElementById('d2l-labs-media-player-video');
+			} else if (this._isAudio) {
+				this._media = this.shadowRoot.getElementById('d2l-labs-media-player-audio');
+			} else {
+				this._media = null;
+			}
+		}
+	}
+
 	play() {
-		if (this._video.paused) this._togglePlay();
+		if (this._media.paused) this._togglePlay();
 	}
 
 	pause() {
-		if (!this._video.paused) this._togglePlay();
+		if (!this._media.paused) this._togglePlay();
 	}
 
-	_videoContainerClicked() {
+	_mediaContainerClicked() {
 		if (!this.shadowRoot.activeElement || this.shadowRoot.activeElement.id !== 'd2l-labs-media-player-settings-menu') {
 			this._usingSettingsMenu = false;
 		}
@@ -462,8 +513,8 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		this.dispatchEvent(new CustomEvent('loadeddata'));
 	}
 
-	_onLoadedMetadata() {
-		this._duration = Math.floor(this._video.duration);
+	_onLoadedMetadata($event) {
+		this._duration = $event.target.duration;
 		this.dispatchEvent(new CustomEvent('loadedmetadata'));
 	}
 
@@ -483,7 +534,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 
 	_onDragStartSeek() {
 		if (this._playing) {
-			this._video.pause();
+			this._media.pause();
 			this._pausedForSeekDrag = true;
 		}
 	}
@@ -493,7 +544,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		if (this._seekBar) {
 			this._updateCurrentTimeFromSeekbarProgress();
 
-			if (this._pausedForSeekDrag) this._video.play();
+			if (this._pausedForSeekDrag) this._media.play();
 			this._pausedForSeekDrag = false;
 		}
 	}
@@ -508,11 +559,11 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 	}
 
 	_onPositionChangeVolume() {
-		this._video.volume = this._volumeLevel.immediateValue / 100;
+		this._media.volume = this._volumeLevel.immediateValue / 100;
 	}
 
 	_onVolumeChange() {
-		this._volume = this._video.volume;
+		this._volume = this._media.volume;
 
 		if (this._volume > 0) {
 			this._muted = false;
@@ -538,19 +589,19 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 	}
 
 	_togglePlay() {
-		if (this._video.paused) {
-			this._video.play();
+		if (this._media.paused) {
+			this._media.play();
 		} else {
-			this._video.pause();
+			this._media.pause();
 		}
 	}
 
 	_toggleMute() {
 		if (this._muted) {
-			this._video.volume = this.preMuteVolume;
+			this._media.volume = this.preMuteVolume;
 		} else {
-			this.preMuteVolume = this._video.volume;
-			this._video.volume = 0;
+			this.preMuteVolume = this._media.volume;
+			this._media.volume = 0;
 		}
 
 		this._muted = !this._muted;
@@ -562,14 +613,92 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		if (screenfull.isFullscreen) {
 			screenfull.exit();
 		} else {
-			screenfull.request(this._videoContainer);
+			screenfull.request(this._mediaContainer);
 		}
 	}
 
 	_startUpdatingCurrentTime() {
 		setInterval(() => {
-			this._currentTime = this._video.currentTime;
+			if (this._media && !this._pausedForSeekDrag) {
+				this._currentTime = this._media.currentTime;
+			}
 		}, SEEK_BAR_UPDATE_PERIOD_MS);
+	}
+
+	_startChangingAudioBars() {
+		this._audioBarsOffset = 0;
+
+		this._changeColoursOfAudioBars();
+
+		setInterval(() => {
+			if (!this._playing || !this._isAudio) return;
+
+			this._changeColoursOfAudioBars();
+		}, AUDIO_BARS_UPDATE_PERIOD_MS);
+	}
+
+	_changeColoursOfAudioBars() {
+		const newAudioBars = [];
+
+		this._audioBars.forEach((audioBar, i) => {
+			let newAudioBar = {};
+
+			Object.keys(audioBar).forEach(key => newAudioBar[key] = audioBar[key]);
+
+			newAudioBar = {
+				...newAudioBar,
+				...this._getRgbOfAudioBar(i)
+			};
+
+			newAudioBars.push(newAudioBar);
+		});
+
+		this._audioBars = newAudioBars;
+
+		if (this._audioBarsOffset === this._audioBars.length - 1) this._audioBarsOffset = 0;
+		else this._audioBarsOffset += 1;
+	}
+
+	_getRgbOfAudioBar(i) {
+		const iPosition = (i + this._audioBarsOffset) % this._audioBars.length;
+		const fraction = iPosition / this._audioBars.length;
+
+		let fromColour;
+		let toColour;
+		let innerFraction;
+
+		if (fraction < 0.25) {
+			fromColour = AUDIO_BARS_GRADIENT_COLOURS.start;
+			toColour = AUDIO_BARS_GRADIENT_COLOURS.middle;
+			innerFraction = fraction * 4;
+		} else if (fraction < 0.5) {
+			fromColour = AUDIO_BARS_GRADIENT_COLOURS.middle;
+			toColour = AUDIO_BARS_GRADIENT_COLOURS.end;
+			innerFraction = (fraction - 0.25) * 4;
+		} else if (fraction < 0.75) {
+			fromColour = AUDIO_BARS_GRADIENT_COLOURS.end;
+			toColour = AUDIO_BARS_GRADIENT_COLOURS.middle;
+			innerFraction = (fraction - 0.5) * 4;
+		} else {
+			fromColour = AUDIO_BARS_GRADIENT_COLOURS.middle;
+			toColour = AUDIO_BARS_GRADIENT_COLOURS.start;
+			innerFraction = (fraction - 0.75) * 4;
+		}
+
+		const fromRed = parseInt(fromColour.substr(0, 2), 16);
+		const toRed = parseInt(toColour.substr(0, 2), 16);
+
+		const fromGreen = parseInt(fromColour.substr(2, 4), 16);
+		const toGreen = parseInt(toColour.substr(2, 4), 16);
+
+		const fromBlue = parseInt(fromColour.substr(4, 6), 16);
+		const toBlue = parseInt(toColour.substr(4, 6), 16);
+
+		return {
+			red: Math.round(fromRed + (toRed - fromRed) * innerFraction),
+			green: Math.round(fromGreen + (toGreen - fromGreen) * innerFraction),
+			blue: Math.round(fromBlue + (toBlue - fromBlue) * innerFraction)
+		};
 	}
 
 	_listenForKeyboard(e) {
@@ -648,7 +777,19 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 	}
 
 	_hidingCustomControls() {
-		return NATIVE_CONTROLS || (this._playing && !this._recentlyShowedCustomControls && !this._hoveringVideoControls && !this._usingSettingsMenu && !this._usingVolumeContainer);
+		return NATIVE_CONTROLS || (this._playing && !this._recentlyShowedCustomControls && !this._hoveringVideoControls && !this._usingSettingsMenu && !this._usingVolumeContainer && this._isVideo) || this._determiningSourceType;
+	}
+
+	_determineSourceType() {
+		this._isAudio = false;
+		this._isVideo = false;
+		const video = document.createElement('video');
+		video.src = this.src;
+		video.addEventListener('canplay', () => {
+			this._determiningSourceType = false;
+			this._isAudio = video.videoHeight === 0;
+			this._isVideo = !this._isAudio;
+		});
 	}
 }
 

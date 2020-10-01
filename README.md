@@ -18,9 +18,13 @@
 > - [x] Demo page
 > - [x] README documentation
 
-A LitElement based media player component, designed for similarity across browsers.
+A LitElement based media player component, designed for similarity across browsers. Capable of playing video and audio content.
 
-![Example of media-player](demo/example.png)
+> Displaying video
+![Example of video](demo/example-video.png)
+
+> Displaying audio
+![Example of audio](demo/example-audio.png)
 
 ## Installation
 
