@@ -8,6 +8,7 @@
   },
   "files": [
     "media-player.js",
+    "media-player-audio-bars.js",
     "/lang",
     "/src"
   ],
