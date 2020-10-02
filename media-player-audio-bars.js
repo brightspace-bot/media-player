@@ -1,10 +1,3 @@
-import '@brightspace-ui/core/components/icons/icon.js';
-import '@d2l/seek-bar/d2l-seek-bar.js';
-import './node_modules/screenfull/dist/screenfull.js';
-import '@brightspace-ui/core/components/menu/menu.js';
-import '@brightspace-ui/core/components/menu/menu-item.js';
-import '@brightspace-ui/core/components/menu/menu-item-radio.js';
-import './media-player-menu-item.js';
 import { css, html, LitElement } from 'lit-element/lit-element.js';
 import { styleMap } from 'lit-html/directives/style-map';
 
