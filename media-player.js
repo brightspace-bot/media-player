@@ -1,7 +1,7 @@
 /* global screenfull */
 import '@brightspace-ui/core/components/icons/icon.js';
 import '@d2l/seek-bar/d2l-seek-bar.js';
-import './node_modules/screenfull/dist/screenfull.js';
+import 'screenfull/dist/screenfull.js';
 import '@brightspace-ui/core/components/dropdown/dropdown.js';
 import '@brightspace-ui/core/components/dropdown/dropdown-menu.js';
 import '@brightspace-ui/core/components/dropdown/dropdown-more.js';
