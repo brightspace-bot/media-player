@@ -2,13 +2,14 @@
   "name": "@brightspace-ui-labs/media-player",
   "description": "A reusable media player component.",
   "repository": "https://github.com/BrightspaceUILabs/media-player.git",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "publishConfig": {
     "access": "public"
   },
   "files": [
     "media-player-menu-item.js",
     "media-player.js",
+    "media-player-audio-bars.js",
     "/lang",
     "/src"
   ],
