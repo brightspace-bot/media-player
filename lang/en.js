@@ -4,6 +4,7 @@ export default {
 	fullscreen: 'Fullscreen',
 	menu: 'menu',
 	mute: 'Mute',
+	off: 'Off',
 	pause: 'Pause',
 	play: 'Play',
 	settings: 'settings',
