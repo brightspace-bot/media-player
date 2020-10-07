@@ -1,21 +1,20 @@
-/* global screenfull */
 import '@brightspace-ui/core/components/icons/icon.js';
 import '@d2l/seek-bar/d2l-seek-bar.js';
-import 'screenfull/dist/screenfull.js';
 import '@brightspace-ui/core/components/menu/menu.js';
 import '@brightspace-ui/core/components/menu/menu-item.js';
 import '@brightspace-ui/core/components/menu/menu-item-radio.js';
 import './media-player-menu-item.js';
 import './media-player-audio-bars.js';
 import { css, html, LitElement } from 'lit-element/lit-element.js';
+import fullscreenApi from './src/fullscreen-api';
 import { ifDefined } from 'lit-html/directives/if-defined';
 import { InternalLocalizeMixin } from './src/mixins/internal-localize-mixin';
+import parseSRT from 'parse-srt/src/parse-srt.js';
 import ResizeObserver from 'resize-observer-polyfill';
 import { RtlMixin } from '@brightspace-ui/core/mixins/rtl-mixin';
 import { styleMap } from 'lit-html/directives/style-map';
-import parseSRT from 'parse-srt/src/parse-srt.js';
 
-const FULLSCREEN_ENABLED = screenfull.isEnabled;
+const FULLSCREEN_ENABLED = fullscreenApi.isEnabled;
 const HIDE_DELAY_MS = 1000;
 const KEY_BINDINGS = {
 	closeMenu: 'Escape',
@@ -371,11 +370,11 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 	}
 
 	render() {
-		const fullscreenIcon = screenfull.isFullscreen ? 'tier1:smallscreen' : 'tier1:fullscreen';
+		const fullscreenIcon = fullscreenApi.isFullscreen ? 'tier1:smallscreen' : 'tier1:fullscreen';
 		const playIcon = this._playing ? 'tier1:pause' : 'tier1:play';
 		const volumeIcon = this._muted ? 'tier1:volume-muted' : 'tier1:volume';
 
-		const fullscreenTooltip = `${screenfull.isFullscreen ? this.localize('exitFullscreen') : this.localize('fullscreen')} (${KEY_BINDINGS.fullscreen})`;
+		const fullscreenTooltip = `${fullscreenApi.isFullscreen ? this.localize('exitFullscreen') : this.localize('fullscreen')} (${KEY_BINDINGS.fullscreen})`;
 		const playTooltip = `${this._playing ? this.localize('pause') : this.localize('play')} (${this.localize('spacebar')})`;
 		const volumeTooltip = `${this._muted ? this.localize('unmute') : this.localize('mute')} (${KEY_BINDINGS.mute})`;
 
@@ -646,14 +645,11 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 
 				const text = await res.text();
 
-				let cues;
 				try {
-					cues = parseSRT(text);
-				} catch (e) { }
-
-				if (cues) {
+					node.cues = parseSRT(text);
 					node.srt = true;
-					node.cues = cues;
+				} catch (error) {
+					node.srt = false;
 				}
 
 				this._tracks.push({
@@ -726,7 +722,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		}
 	}
 
-	_onCueChange(e) {
+	_onCueChange() {
 		for (let i = 0; i < this._media.textTracks.length; i++) {
 			if (this._media.textTracks[i].mode === 'hidden') {
 				if (this._media.textTracks[i].activeCues.length > 0) {
@@ -762,10 +758,10 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 	_toggleFullscreen() {
 		if (!FULLSCREEN_ENABLED) return;
 
-		if (screenfull.isFullscreen) {
-			screenfull.exit();
+		if (fullscreenApi.isFullscreen) {
+			fullscreenApi.exit();
 		} else {
-			screenfull.request(this._mediaContainer);
+			fullscreenApi.request(this._mediaContainer);
 		}
 	}
 
@@ -869,13 +865,13 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		switch (this._sourceType) {
 			case SOURCE_TYPES.video:
 				return html`
-					<video ?controls="${NATIVE_CONTROLS}" id="d2l-labs-media-player-video" ?autoplay="${this.autoplay}" ?loop="${this.loop}" poster="${ifDefined(this.poster)}" preload="metadata" @click=${this._onVideoClick} @ended=${this._onEnded} @loadeddata=${this._onLoadedData} @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._onLoadedMetadata} @timeupdate=${this._onTimeUpdate} @volumechange=${this._onVolumeChange}>
+					<video crossorigin="anonymous" ?controls="${NATIVE_CONTROLS}" id="d2l-labs-media-player-video" ?autoplay="${this.autoplay}" ?loop="${this.loop}" poster="${ifDefined(this.poster)}" preload="metadata" @click=${this._onVideoClick} @ended=${this._onEnded} @loadeddata=${this._onLoadedData} @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._onLoadedMetadata} @timeupdate=${this._onTimeUpdate} @volumechange=${this._onVolumeChange}>
 						<source src="${this.src}">
 					</video>
 				`;
 			case SOURCE_TYPES.audio:
 				return html`
-					<audio id="d2l-labs-media-player-audio" ?controls="${NATIVE_CONTROLS}" ?autoplay="${this.autoplay}" crossorigin="anonymous" ?loop="${this.loop}" preload="metadata" @ended=${this._onEnded} @loadeddata=${this._onLoadedData} @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._onLoadedMetadata} @timeupdate=${this._onTimeUpdate} @volumechange=${this._onVolumeChange}>
+					<audio crossorigin="anonymous" id="d2l-labs-media-player-audio" ?controls="${NATIVE_CONTROLS}" ?autoplay="${this.autoplay}" ?loop="${this.loop}" preload="metadata" @ended=${this._onEnded} @loadeddata=${this._onLoadedData} @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._onLoadedMetadata} @timeupdate=${this._onTimeUpdate} @volumechange=${this._onVolumeChange}>
 						<source src="${this.src}"></source>
 					</audio>
 
