@@ -7,8 +7,11 @@ export default {
 	off: 'Off',
 	pause: 'Pause',
 	play: 'Play',
+	playbackSpeed: 'Playback speed',
 	settings: 'settings',
-	spacebar: 'spacebar',
+	seekSlider: 'seek slider',
 	speed: 'speed',
-	unmute: 'Unmute'
+	subtitlesCC: 'Subtitles/CC',
+	unmute: 'Unmute',
+	volumeSlider: 'volume slider'
 };
