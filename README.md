@@ -34,13 +34,13 @@ To install from NPM:
 npm install @brightspace-ui-labs/media-player
 ```
 
-## Usage
+## d2l-labs-media-player
 
 ```html
 <script type="module">
     import '@brightspace-ui-labs/media-player/media-player.js';
 </script>
-<d2l-labs-media-player src="<URL of media source>"></d2l-labs-media-player>
+<d2l-labs-media-player src="/video.webm"></d2l-labs-media-player>
 ```
 
 **Properties:**
@@ -102,6 +102,29 @@ this.document.querySelector('d2l-labs-media-player').addEventListener('loadeddat
 	console.log('loadeddata event has been dispatched');
 });
 ```
+
+## track
+
+The media player supports captions and subtitles, provided as `.srt` or `.vtt` files. If any valid tracks are present, a captions menu will be presented in the settings menu with an item for each track.
+
+```html
+<script type="module">
+    import '@brightspace-ui-labs/media-player/media-player.js';
+</script>
+<d2l-labs-media-player src="/video.webm">
+	<track src="/english-captions.srt" srclang="en" label="English" kind="captions">
+	<track src="/french-captions.vtt" srclang="fr" label="French" kind="captions">
+</d2l-labs-media-player>
+```
+
+**Properties**
+
+| Property | Type | Default | Description |
+|--|--|--|--|
+| kind | "captions" | "subtitles", required | The kind of track.
+| label | String, required | The label for the track, displayed to the user for selection.
+| src | String, required | The URL of the source file.
+| srclang | String, required | The language's code.
 
 ## Developing, Testing and Contributing
 

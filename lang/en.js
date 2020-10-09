@@ -11,7 +11,7 @@ export default {
 	settings: 'settings',
 	seekSlider: 'seek slider',
 	speed: 'speed',
-	subtitlesCC: 'Subtitles/CC',
+	subtitles: 'Subtitles',
 	unmute: 'Unmute',
 	volumeSlider: 'volume slider'
 };
