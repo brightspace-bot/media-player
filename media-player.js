@@ -77,6 +77,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 				min-height: 11rem;
 				overflow: hidden;
 				position: relative;
+				width: 100%;
 			}
 
 			#d2l-labs-media-player-video {
