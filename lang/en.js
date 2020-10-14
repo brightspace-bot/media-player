@@ -4,10 +4,14 @@ export default {
 	fullscreen: 'Fullscreen',
 	menu: 'menu',
 	mute: 'Mute',
+	off: 'Off',
 	pause: 'Pause',
 	play: 'Play',
+	playbackSpeed: 'Playback speed',
 	settings: 'settings',
-	spacebar: 'spacebar',
+	seekSlider: 'seek slider',
 	speed: 'speed',
-	unmute: 'Unmute'
+	subtitles: 'Subtitles',
+	unmute: 'Unmute',
+	volumeSlider: 'volume slider'
 };
