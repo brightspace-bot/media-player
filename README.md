@@ -103,7 +103,7 @@ this.document.querySelector('d2l-labs-media-player').addEventListener('loadeddat
 });
 ```
 
-## track
+## Captions and Subtitles Using `<track>`
 
 The media player supports captions and subtitles, provided as `.srt` or `.vtt` files. If any valid tracks are present, a captions menu will be presented in the settings menu with an item for each track.
 
@@ -121,7 +121,7 @@ The media player supports captions and subtitles, provided as `.srt` or `.vtt` f
 
 | Property | Type | Default | Description |
 |--|--|--|--|
-| kind | "captions" | "subtitles", required | The kind of track.
+| kind | ["captions", "subtitles"], required | The kind of track.
 | label | String, required | The label for the track, displayed to the user for selection.
 | src | String, required | The URL of the source file.
 | srclang | String, required | The language's code.

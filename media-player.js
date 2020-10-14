@@ -48,12 +48,15 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			_currentTime: { type: Number, attribute: false },
 			_duration: { type: Number, attribute: false },
 			_muted: { type: Boolean, attribute: false },
+			_playbackSpeedMenuValue: { type: String, attribute: false },
 			_playing: { type: Boolean, attribute: false },
 			_recentlyShowedCustomControls: { type: Boolean, attribute: false },
 			_settingsMenuContainerBottom: { type: String, attribute: false },
 			_settingsMenuContainerHeight: { type: String, attribute: false },
+			_settingsMenuVisibility: { type: String, attribute: false },
 			_sourceType: { type: String, attribute: false },
 			_trackFontSizeRem: { type: Number, attribute: false },
+			_trackMenuValue: { type: String, attribute: false },
 			_tracks: { type: Array, attribute: false },
 			_trackText: { type: String, attribute: false },
 			_usingSettingsMenu: { type: Boolean, attribute: false },
@@ -105,7 +108,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			}
 
 			#d2l-labs-media-player-seek-bar {
-				--d2l-knob-focus-color: var(--d2l-color-white);
+				--d2l-knob-focus-color: #ffffff;
 				--d2l-knob-focus-size: 4px;
 				--d2l-knob-size: 15px;
 				--d2l-outer-knob-color: var(--d2l-color-celestine-plus-1);
@@ -156,7 +159,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			}
 
 			.d2l-labs-media-player-control-display {
-				color: var(--d2l-color-white);
+				color: #ffffff;
 			}
 
 			.d2l-labs-media-player-button {
@@ -206,7 +209,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			}
 
 			#d2l-labs-media-player-volume-level {
-				--d2l-knob-focus-color: var(--d2l-color-white);
+				--d2l-knob-focus-color: #ffffff;
 				--d2l-knob-focus-size: 4px;
 				--d2l-knob-size: 18px;
 				--d2l-outer-knob-color: var(--d2l-color-celestine-plus-1);
@@ -234,7 +237,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			}
 
 			#d2l-labs-media-player-settings-menu {
-				border: 1px solid var(--d2l-color-white);
+				border: 1px solid #ffffff;
 				bottom: 0;
 				left: 0;
 				overflow-y: scroll;
@@ -246,7 +249,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			}
 
 			.d2l-labs-media-player-menu-end {
-				background-color: var(--d2l-color-white);
+				background-color: #ffffff;
 				border-top: 1px solid var(--d2l-color-gypsum);
 				height: 10px;
 				width: 100%;
@@ -282,7 +285,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			#d2l-labs-media-player-track-container {
 				align-items: center;
 				bottom: 3rem;
-				color: var(--d2l-color-white);
+				color: #ffffff;
 				display: flex;
 				justify-content: center;
 				overflow: hidden;
@@ -299,7 +302,6 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 
 			#d2l-labs-media-player-track-container > div > span {
 				background-color: rgba(0, 0, 0, 0.69);
-				font-family: 'Lato', sans-serif;
 				color: white;
 				box-shadow: 0.3rem 0 0 rgba(0, 0, 0, 0.69), -0.3rem 0 0 rgba(0, 0, 0, 0.69);
 				white-space: pre-wrap;
@@ -345,10 +347,12 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		this._duration = 1;
 		this._hoveringVideoControls = false;
 		this._muted = false;
+		this._playbackSpeedMenuValue = '1.0';
 		this._playing = false;
 		this._recentlyShowedCustomControls = false;
 		this._settingsMenuContainerHeight = '';
 		this._settingsMenuContainerBottom = '';
+		this._settingsMenuVisibility = 'visible';
 		this._sourceType = SOURCE_TYPES.unknown;
 		this._trackFontSizeRem = 1;
 		this._tracks = [];
@@ -389,6 +393,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 
 		const volumeLevelContainerClass = !this._usingVolumeContainer || this._hidingCustomControls() ? 'hidden' : '';
 
+		const settingsMenuStyle = { visibility: this._settingsMenuVisibility };
 		const trackContainerStyle = { bottom: this._hidingCustomControls() ? '1rem' : '3rem', fontSize: `${this._trackFontSizeRem}rem`, lineHeight: `${this._trackFontSizeRem * 1.2}rem` };
 
 		return html`
@@ -446,9 +451,9 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 
 			<div id="d2l-labs-media-player-settings-menu-container" class="${this._usingSettingsMenu ? '' : 'd2l-labs-media-player-hidden'}" style=${styleMap(settingsMenuContainerStyle)}>
 				<div class="d2l-labs-media-player-flex-filler"></div>
-				<d2l-menu id="d2l-labs-media-player-settings-menu" label="${this.localize('settings')}">
+				<d2l-menu id="d2l-labs-media-player-settings-menu" label="${this.localize('settings')}" style=${styleMap(settingsMenuStyle)}>
 					<div class="d2l-labs-media-player-menu-end"></div>
-					<d2l-labs-media-player-menu-item id="d2l-labs-media-player-playback-speeds" text="${this.localize('playbackSpeed')}" value="1.0" aria-valuenow="1.0" subMenu>
+					<d2l-labs-media-player-menu-item id="d2l-labs-media-player-playback-speeds" text="${this.localize('playbackSpeed')}" value="${this._playbackSpeedMenuValue}" aria-valuenow="${this._playbackSpeedMenuValue}" subMenu>
 						<d2l-menu id="d2l-labs-media-player-playback-speeds-menu" @d2l-menu-item-change=${this._onPlaybackSpeedsMenuItemChange}>
 							${PLAYBACK_SPEEDS.map(speed => html`
 								<d2l-menu-item-radio text="${speed === '1.0' ? `1.0 (${this.localize('default')})` : speed}" value="${speed}" ?selected="${speed === '1.0'}"></d2l-menu-item-radio>
@@ -469,6 +474,8 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		super.firstUpdated(changedProperties);
 
 		if (!this.src) console.warn('d2l-labs-media-player component requires src text');
+
+		this._trackMenuValue = this.localize('off');
 
 		this._mediaContainer = this.shadowRoot.getElementById('d2l-labs-media-player-media-container');
 		this._playButton = this.shadowRoot.getElementById('d2l-labs-media-player-play-button');
@@ -622,51 +629,51 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		for (let i = 0; i < nodes.length; i++) {
 			const node = nodes[i];
 
-			if (node.nodeType === Node.ELEMENT_NODE && node.nodeName === 'TRACK') {
-				if (!(node.kind in TRACK_KINDS)) {
-					console.warn(`d2l-labs-media-player component requires 'kind' text on track to be one of ${Object.keys(TRACK_KINDS)}`);
-					continue;
-				}
+			if (node.nodeType !== Node.ELEMENT_NODE || node.nodeName !== 'TRACK') continue;
 
-				if (!node.label) {
-					console.warn("d2l-labs-media-player component requires 'label' text on track");
-					continue;
-				}
-
-				if (!node.src) {
-					console.warn("d2l-labs-media-player component requires 'src' text on track");
-					continue;
-				}
-
-				if (!node.srclang) {
-					console.warn("d2l-labs-media-player component requires 'srclang' text on track");
-					continue;
-				}
-
-				const res = await fetch(node.src);
-				if (res.status !== 200) {
-					console.warn(`d2l-labs-media-player component could not load track from '${node.src}'`);
-					continue;
-				}
-
-				const text = await res.text();
-
-				try {
-					node.cues = parseSRT(text);
-					node.srt = true;
-				} catch (error) {
-					node.srt = false;
-				}
-
-				this._tracks.push({
-					cues: node.cues,
-					kind: node.kind,
-					label: node.label,
-					src: node.src,
-					srclang: node.srclang,
-					srt: node.srt
-				});
+			if (!(node.kind in TRACK_KINDS)) {
+				console.warn(`d2l-labs-media-player component requires 'kind' text on track to be one of ${Object.keys(TRACK_KINDS)}`);
+				continue;
 			}
+
+			if (!node.label) {
+				console.warn("d2l-labs-media-player component requires 'label' text on track");
+				continue;
+			}
+
+			if (!node.src) {
+				console.warn("d2l-labs-media-player component requires 'src' text on track");
+				continue;
+			}
+
+			if (!node.srclang) {
+				console.warn("d2l-labs-media-player component requires 'srclang' text on track");
+				continue;
+			}
+
+			const res = await fetch(node.src);
+			if (res.status !== 200) {
+				console.warn(`d2l-labs-media-player component could not load track from '${node.src}'`);
+				continue;
+			}
+
+			const text = await res.text();
+
+			try {
+				node.cues = parseSRT(text);
+				node.srt = true;
+			} catch (error) {
+				node.srt = false;
+			}
+
+			this._tracks.push({
+				cues: node.cues,
+				kind: node.kind,
+				label: node.label,
+				src: node.src,
+				srclang: node.srclang,
+				srt: node.srt
+			});
 		}
 
 		await new Promise(resolve => {
@@ -706,14 +713,13 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 
 	_onPlaybackSpeedsMenuItemChange(e) {
 		this._media.playbackRate = e.target.value;
-
-		this.shadowRoot.getElementById('d2l-labs-media-player-playback-speeds').value = e.target.value;
+		this._playbackSpeedMenuValue = e.target.value;
 
 		this._onMenuItemChange();
 	}
 
 	_onTracksMenuItemChange(e) {
-		this.shadowRoot.getElementById('d2l-labs-media-player-tracks').value = e.target.text;
+		this._trackMenuValue = e.target.text;
 
 		for (let i = 0; i < this._media.textTracks.length; i++) {
 			if (this._media.textTracks[i].language === e.target.value && this._media.textTracks[i].mode === 'hidden') {
@@ -736,10 +742,10 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 	}
 
 	_onMenuItemChange() {
-		this.shadowRoot.getElementById('d2l-labs-media-player-settings-menu').style.visibility = 'hidden';
+		this._settingsMenuVisibility = 'hidden';
 		this.shadowRoot.getElementById('d2l-labs-media-player-settings-menu').show();
 		setTimeout(() => {
-			this.shadowRoot.getElementById('d2l-labs-media-player-settings-menu').style.visibility = 'visible';
+			this._settingsMenuVisibility = 'visible';
 			this._stopUsingSettingsMenu();
 		}, 500);
 	}
@@ -905,7 +911,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 
 	_getTracksMenuView() {
 		return this._tracks.length > 0 ? html`
-			<d2l-labs-media-player-menu-item id="d2l-labs-media-player-tracks" text="${this.localize('subtitles')}" value="${this.localize('off')}" aria-valuenow="${this.localize('off')}" subMenu>
+			<d2l-labs-media-player-menu-item id="d2l-labs-media-player-tracks" text="${this.localize('subtitles')}" value="${this._trackMenuValue}" aria-valuenow="${this._trackMenuValue}" subMenu>
 				<d2l-menu id="d2l-labs-media-player-tracks-menu" @d2l-menu-item-change=${this._onTracksMenuItemChange}>
 					<d2l-menu-item-radio text="${this.localize('off')}" value="${this.localize('off')}" selected></d2l-menu-item-radio>
 					${this._tracks.map(track => html`
