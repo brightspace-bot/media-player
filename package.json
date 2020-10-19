@@ -48,7 +48,7 @@
   },
   "dependencies": {
     "@brightspace-ui/core": "^1.76.1",
-    "@d2l/seek-bar": "git+https://github.com/Brightspace/d2l-seek-bar.git",
+    "@d2l/seek-bar": "github:Brightspace/d2l-seek-bar#semver:^1",
     "@webcomponents/webcomponentsjs": "^2",
     "lit-element": "^2",
     "parse-srt": "^1.0.0-alpha",
