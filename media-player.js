@@ -76,7 +76,6 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			}
 
 			#d2l-labs-media-player-media-container {
-				background-color: black;
 				min-height: 11rem;
 				overflow: hidden;
 				position: relative;
@@ -91,19 +90,18 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 				width: 100%;
 			}
 
-			#d2l-labs-media-player-video-controls {
-				background-color: rgba(0, 0, 0, 0.69);
+			#d2l-labs-media-player-media-controls {
 				bottom: 0;
 				position: absolute;
 				transition: bottom 500ms ease;
 				width: 100%;
 			}
 
-			#d2l-labs-media-player-video-controls.hidden {
+			#d2l-labs-media-player-media-controls.hidden {
 				bottom: -8rem;
 			}
 
-			#d2l-labs-media-player-video-controls > * {
+			#d2l-labs-media-player-media-controls > * {
 				position: relative;
 				top: 0;
 			}
@@ -146,8 +144,15 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			}
 
 			.d2l-labs-media-player-control-element:hover {
-				background: rgba(255, 255, 255, 0.25);
 				cursor: pointer;
+			}
+
+			.d2l-labs-media-player-control-element.audio:hover {
+				background: #CDD5DC;
+			}
+
+			.d2l-labs-media-player-control-element.video:hover {
+				background: rgba(255, 255, 255, 0.25);
 			}
 
 			#d2l-labs-media-player-time {
@@ -157,10 +162,6 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 
 			#d2l-labs-media-player-time:hover {
 				cursor: auto;
-			}
-
-			.d2l-labs-media-player-control-display {
-				color: #ffffff;
 			}
 
 			.d2l-labs-media-player-button {
@@ -173,7 +174,11 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 				height: 100%;
 			}
 
-			.d2l-labs-media-player-button:focus {
+			.d2l-labs-media-player-button.audio:focus {
+				box-shadow: 0 0 0 0.125rem #006fbf;
+			}
+
+			.d2l-labs-media-player-button.video:focus {
 				box-shadow: 0 0 0 0.125rem #ffffff;
 			}
 
@@ -346,7 +351,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		this._currentTime = 0;
 		this._determiningSourceType = true;
 		this._duration = 1;
-		this._hoveringVideoControls = false;
+		this._hoveringMediaControls = false;
 		this._muted = false;
 		this._playbackSpeedMenuValue = '1.0';
 		this._playing = false;
@@ -386,16 +391,18 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		const playTooltip = `${this._playing ? this.localize('pause') : this.localize('play')} (${KEY_BINDINGS.play})`;
 		const volumeTooltip = `${this._muted ? this.localize('unmute') : this.localize('mute')} (${KEY_BINDINGS.mute})`;
 
+		const controlDisplayStyle = { color: this._sourceType === SOURCE_TYPES.video ? '#ffffff' : '#494c4e' };
+		const mediaContainerStyle = { backgroundColor: this._sourceType === SOURCE_TYPES.audio ? '#ffffff' : 'black', cursor: NATIVE_CONTROLS || !this._hidingCustomControls() ? 'auto' : 'none' };
+		const mediaControlsStyle = { backgroundColor: this._sourceType === SOURCE_TYPES.video ? 'rgba(0, 0, 0, 0.69)' : '#ffffff' };
 		const settingsMenuContainerStyle = {
 			bottom: this._settingsMenuContainerBottom,
 			height: this._settingsMenuContainerHeight
 		};
-		const mediaContainerStyle = { cursor: NATIVE_CONTROLS || !this._hidingCustomControls() ? 'auto' : 'none' };
-
-		const volumeLevelContainerClass = !this._usingVolumeContainer || this._hidingCustomControls() ? 'hidden' : '';
-
 		const settingsMenuStyle = { visibility: this._settingsMenuVisibility };
 		const trackContainerStyle = { bottom: this._hidingCustomControls() ? '1rem' : '3rem', fontSize: `${this._trackFontSizeRem}rem`, lineHeight: `${this._trackFontSizeRem * 1.2}rem` };
+
+		const volumeLevelContainerClass = !this._usingVolumeContainer || this._hidingCustomControls() ? 'hidden' : '';
+		const playerButtonClass = `d2l-labs-media-player-button ${this._sourceType === SOURCE_TYPES.video ? 'video' : 'audio'}`;
 
 		return html`
 		<slot @slotchange=${this._onSlotChange}></slot>
@@ -409,18 +416,18 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 				</div>
 			</div>
 
-			<div class="${this._hidingCustomControls() ? 'hidden' : ''}" id="d2l-labs-media-player-video-controls" ?hidden="${NATIVE_CONTROLS}" @mouseenter=${this._startHoveringControls} @mouseleave=${this._stopHoveringControls}>
+			<div class="${this._hidingCustomControls() ? 'hidden' : ''}" id="d2l-labs-media-player-media-controls" ?hidden="${NATIVE_CONTROLS}" style=${styleMap(mediaControlsStyle)} @mouseenter=${this._startHoveringControls} @mouseleave=${this._stopHoveringControls}>
 				<d2l-seek-bar fullWidth solid id="d2l-labs-media-player-seek-bar" value="${Math.floor(this.currentTime / this._duration * 100)}" aria-label="${this.localize('seekSlider')}" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.floor(this.currentTime / this._duration * 100)}" title="${this.localize('seekSlider')}" @drag-start=${this._onDragStartSeek} @drag-end=${this._onDragEndSeek} @position-change=${this._onPositionChangeSeek}></d2l-seek-bar>
 				<div id="d2l-labs-media-player-buttons">
 					<div class="d2l-labs-media-player-control-element">
-						<button class="d2l-labs-media-player-button" id="d2l-labs-media-player-play-button" title="${playTooltip}" aria-label="${playTooltip}" @click=${this._togglePlay}>
-							<d2l-icon class="d2l-labs-media-player-control-display" icon="${playIcon}"></d2l-icon>
+						<button class="${playerButtonClass}" id="d2l-labs-media-player-play-button" title="${playTooltip}" aria-label="${playTooltip}" @click=${this._togglePlay}>
+							<d2l-icon icon="${playIcon}" style=${styleMap(controlDisplayStyle)}></d2l-icon>
 						</button>
 					</div>
 
 					<div class="d2l-labs-media-player-control-element" id="d2l-labs-media-player-volume-container" @mouseenter=${this._startUsingVolumeContainer} @mouseleave=${this._stopUsingVolumeContainer}>
-						<button class="d2l-labs-media-player-button" id="d2l-labs-media-player-volume-button" title="${volumeTooltip}" aria-label="${volumeTooltip}" @click=${this._toggleMute} @focus=${this._startUsingVolumeContainer} @focusout=${this._stopUsingVolumeContainer}>
-							<d2l-icon class="d2l-labs-media-player-control-display" icon="${volumeIcon}"></d2l-icon>
+						<button class="${playerButtonClass}" id="d2l-labs-media-player-volume-button" title="${volumeTooltip}" aria-label="${volumeTooltip}" @click=${this._toggleMute} @focus=${this._startUsingVolumeContainer} @focusout=${this._stopUsingVolumeContainer}>
+							<d2l-icon icon="${volumeIcon}" style=${styleMap(controlDisplayStyle)}></d2l-icon>
 						</button>
 
 						<div id="d2l-labs-media-player-volume-level-container" class="${volumeLevelContainerClass}">
@@ -430,21 +437,21 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 						</div>
 					</div>
 
-					<div class="d2l-labs-media-player-control-display" id="d2l-labs-media-player-time">
+					<div id="d2l-labs-media-player-time" style=${styleMap(controlDisplayStyle)}>
 						${MediaPlayer._formatTime(this.currentTime)} / ${MediaPlayer._formatTime(this.duration)}
 					</div>
 
 					<div class="d2l-labs-media-player-flex-filler"></div>
 
 					<div class="d2l-labs-media-player-control-element ${this._sourceType !== SOURCE_TYPES.video ? 'd2l-labs-media-player-control-element-last' : ''}">
-						<button class="d2l-labs-media-player-control-display d2l-labs-media-player-button" id="d2l-labs-media-player-settings-button" label="${this.localize('settings')}" aria-label="${this.localize('settings')}" @click=${this._settingsButtonClick}>
-							<d2l-icon class="d2l-labs-media-player-control-display" icon="tier1:gear"></d2l-icon>
+						<button class="${playerButtonClass}" id="d2l-labs-media-player-settings-button" label="${this.localize('settings')}" style=${styleMap(controlDisplayStyle)} aria-label="${this.localize('settings')}" @click=${this._settingsButtonClick}>
+							<d2l-icon icon="tier1:gear" style=${styleMap(controlDisplayStyle)}></d2l-icon>
 						</button>
 					</div>
 
 					<div id="d2l-labs-media-player-fullscreen" class="d2l-labs-media-player-control-element d2l-labs-media-player-control-element-last" ?hidden="${this._sourceType !== SOURCE_TYPES.video}">
-						<button ?hidden="${!FULLSCREEN_ENABLED}" class="d2l-labs-media-player-button" title="${fullscreenTooltip}" aria-label="${fullscreenTooltip}" @click=${this._toggleFullscreen}>
-							<d2l-icon class="d2l-labs-media-player-control-display" icon="${fullscreenIcon}"></d2l-icon>
+						<button ?hidden="${!FULLSCREEN_ENABLED}" class="${playerButtonClass}" title="${fullscreenTooltip}" aria-label="${fullscreenTooltip}" @click=${this._toggleFullscreen}>
+							<d2l-icon icon="${fullscreenIcon}" style=${styleMap(controlDisplayStyle)}></d2l-icon>
 						</button>
 					</div>
 				</div>
@@ -821,12 +828,12 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 	}
 
 	_startHoveringControls() {
-		this._hoveringVideoControls = true;
+		this._hoveringMediaControls = true;
 		this._showControls(false);
 	}
 
 	_stopHoveringControls() {
-		this._hoveringVideoControls = false;
+		this._hoveringMediaControls = false;
 		this._showControls(true);
 	}
 
@@ -875,7 +882,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 	}
 
 	_hidingCustomControls() {
-		return NATIVE_CONTROLS || (this._playing && !this._recentlyShowedCustomControls && !this._hoveringVideoControls && !this._usingSettingsMenu && !this._usingVolumeContainer && this._sourceType === SOURCE_TYPES.video) || this._sourceType === SOURCE_TYPES.unknown;
+		return NATIVE_CONTROLS || (this._playing && !this._recentlyShowedCustomControls && !this._hoveringMediaControls && !this._usingSettingsMenu && !this._usingVolumeContainer && this._sourceType === SOURCE_TYPES.video) || this._sourceType === SOURCE_TYPES.unknown;
 	}
 
 	_determineSourceType() {
@@ -885,6 +892,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		video.addEventListener('canplay', () => {
 			this._sourceType = video.videoHeight === 0 ? SOURCE_TYPES.audio : SOURCE_TYPES.video;
 		});
+		video.addEventListener('error', (e) => console.log(e));
 	}
 
 	_getMediaAreaView() {
