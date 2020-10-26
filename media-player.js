@@ -345,7 +345,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			}
 
 			#d2l-labs-media-player-audio-play-button:focus {
-				border-raidus: 2px;
+				border-radius: 8px;
 				box-shadow: 0 0 0 2px #006fbf;
 				outline: none;
 			}
@@ -996,6 +996,8 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 	}
 
 	_getMediaAreaView() {
+		const playIcon = `tier3:${this._playing ? 'pause' : 'play'}`;
+
 		switch (this._sourceType) {
 			case SOURCE_TYPES.video:
 				return html`
@@ -1004,8 +1006,6 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 					</video>
 				`;
 			case SOURCE_TYPES.audio:
-				const playIcon = `tier3:${this._playing ? 'pause' : 'play'}`;
-
 				return html`
 					<audio crossorigin="anonymous" id="d2l-labs-media-player-audio" ?controls="${NATIVE_CONTROLS}" ?autoplay="${this.autoplay}" ?loop="${this.loop}" preload="metadata" @ended=${this._onEnded} @error=${this._onError} @loadeddata=${this._onLoadedData} @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._onLoadedMetadata} @timeupdate=${this._onTimeUpdate} @volumechange=${this._onVolumeChange}>
 						<source src="${this.src}"></source>
