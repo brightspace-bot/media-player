@@ -173,19 +173,20 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			.d2l-labs-media-player-button {
 				border-radius: 0.25rem;
 				background-color: transparent;
-				border: 0.2rem solid transparent;
-				border: none;
+				border: 2px solid transparent;
 				outline: none;
 				width: 100%;
 				height: 100%;
 			}
 
 			.d2l-labs-media-player-button.audio:focus {
-				box-shadow: 0 0 0 0.125rem #006fbf;
+				border-width: 2px;
+				border-color: #006fbf;
 			}
 
 			.d2l-labs-media-player-button.video:focus {
-				box-shadow: 0 0 0 0.125rem #ffffff;
+				border-color: #ffffff;
+				border-width: 2px;
 			}
 
 			.d2l-labs-media-player-button:hover {
