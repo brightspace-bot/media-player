@@ -2,6 +2,8 @@ export default {
 	default: 'Default',
 	exitFullscreen: 'Exit fullscreen',
 	fullscreen: 'Fullscreen',
+	loadErrorMessage: 'An error occurred while trying to load the media',
+	loadSuccessMessage: 'The media has loaded successfully',
 	menu: 'menu',
 	mute: 'Mute',
 	off: 'Off',

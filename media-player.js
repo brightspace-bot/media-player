@@ -2,6 +2,7 @@ import '@brightspace-ui/core/components/icons/icon.js';
 import '@brightspace-ui/core/components/menu/menu.js';
 import '@brightspace-ui/core/components/menu/menu-item.js';
 import '@brightspace-ui/core/components/menu/menu-item-radio.js';
+import '@brightspace-ui/core/components/offscreen/offscreen.js';
 import '@d2l/seek-bar/d2l-seek-bar.js';
 import './media-player-menu-item.js';
 import './media-player-audio-bars.js';
@@ -21,6 +22,10 @@ const KEY_BINDINGS = {
 	play: 'k',
 	mute: 'm',
 	fullscreen: 'f'
+};
+const MESSAGE_TYPES = {
+	error: 1,
+	success: 2
 };
 const MIN_TRACK_WIDTH_PX = 250;
 const NATIVE_CONTROLS = !document.createElement('video').canPlayType;
@@ -47,6 +52,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			src: { type: String },
 			_currentTime: { type: Number, attribute: false },
 			_duration: { type: Number, attribute: false },
+			_message: { type: Object, attribute: false },
 			_muted: { type: Boolean, attribute: false },
 			_playbackSpeedMenuValue: { type: String, attribute: false },
 			_playing: { type: Boolean, attribute: false },
@@ -347,6 +353,28 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 				height: 3rem;
 				width: 3rem;
 			}
+
+			#d2l-labs-media-player-error {
+				align-items: center;
+				background-color: #000000;
+				color: white;
+				display: flex;
+				flex-direction: column;
+				height: calc(100% - 20px);
+				justify-content: center;
+				padding: 10px;
+				width: calc(100% - 20px);
+			}
+
+			#d2l-labs-media-player-error > d2l-icon {
+				color: white;
+				height: 100px;
+				width: 100px;
+			}
+
+			#d2l-labs-media-player-error > span {
+				text-align: center;
+			}
 		`;
 	}
 
@@ -387,6 +415,10 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		this._determiningSourceType = true;
 		this._duration = 1;
 		this._hoveringMediaControls = false;
+		this._message = {
+			text: null,
+			type: null
+		};
 		this._muted = false;
 		this._playbackSpeedMenuValue = '1.0';
 		this._playing = false;
@@ -427,7 +459,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		const volumeTooltip = `${this._muted ? this.localize('unmute') : this.localize('mute')} (${KEY_BINDINGS.mute})`;
 
 		const controlDisplayStyle = { color: this._sourceType === SOURCE_TYPES.video ? '#ffffff' : '#494c4e' };
-		const mediaContainerStyle = { backgroundColor: this._sourceType === SOURCE_TYPES.audio ? '#ffffff' : 'black', cursor: !this._hidingCustomControls() || this._sourceType === SOURCE_TYPES.unknown ? 'auto' : 'none' };
+		const mediaContainerStyle = { backgroundColor: this._sourceType === SOURCE_TYPES.audio ? '#ffffff' : '#000000', cursor: !this._hidingCustomControls() || this._sourceType === SOURCE_TYPES.unknown ? 'auto' : 'none', display: this._sourceType === SOURCE_TYPES.unknown ? 'none' : 'block' };
 		const mediaControlsStyle = { backgroundColor: this._sourceType === SOURCE_TYPES.video ? 'rgba(0, 0, 0, 0.69)' : '#ffffff' };
 		const settingsMenuContainerStyle = {
 			bottom: this._settingsMenuContainerBottom,
@@ -441,6 +473,12 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 
 		return html`
 		<slot @slotchange=${this._onSlotChange}></slot>
+
+		<d2l-offscreen>
+			<span role="alert">${this._message.text}</span>
+		</d2l-offscreen>
+
+		${this._getErrorView()}
 
 		<div id="d2l-labs-media-player-media-container" style=${styleMap(mediaContainerStyle)} @mousemove=${this._onVideoContainerMouseMove} @click=${this._mediaContainerClicked} @keydown=${this._listenForKeyboard}>
 			${this._getMediaAreaView()}
@@ -584,7 +622,13 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		this.dispatchEvent(new CustomEvent('ended'));
 	}
 
+	_onError() {
+		this._setLoadErrorMessage();
+		this.dispatchEvent(new CustomEvent('error'));
+	}
+
 	_onLoadedData() {
+		this._setLoadSuccessMessage();
 		this.dispatchEvent(new CustomEvent('loadeddata'));
 	}
 
@@ -921,19 +965,37 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 	}
 
 	_determineSourceType() {
+		this._message = {
+			text: null,
+			type: null
+		};
 		this._sourceType = SOURCE_TYPES.unknown;
 		const video = document.createElement('video');
 		video.src = this.src;
+
 		video.addEventListener('canplay', () => {
 			this._sourceType = video.videoHeight === 0 ? SOURCE_TYPES.audio : SOURCE_TYPES.video;
 		});
+
+		video.addEventListener('error', this._onError.bind(this));
+	}
+
+	_getErrorView() {
+		return this._message.type === MESSAGE_TYPES.error ? html`
+			<div id="d2l-labs-media-player-error">
+				<d2l-icon icon="tier1:alert"></d2l-icon>
+				<span>
+					${this._message.text}
+				</span>
+			</div>
+		` : null;
 	}
 
 	_getMediaAreaView() {
 		switch (this._sourceType) {
 			case SOURCE_TYPES.video:
 				return html`
-					<video crossorigin="anonymous" ?controls="${NATIVE_CONTROLS}" id="d2l-labs-media-player-video" ?autoplay="${this.autoplay}" ?loop="${this.loop}" poster="${ifDefined(this.poster)}" preload="metadata" @click=${this._onVideoClick} @ended=${this._onEnded} @loadeddata=${this._onLoadedData} @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._onLoadedMetadata} @timeupdate=${this._onTimeUpdate} @volumechange=${this._onVolumeChange}>
+					<video crossorigin="anonymous" ?controls="${NATIVE_CONTROLS}" id="d2l-labs-media-player-video" ?autoplay="${this.autoplay}" ?loop="${this.loop}" poster="${ifDefined(this.poster)}" preload="metadata" @click=${this._onVideoClick} @ended=${this._onEnded} @error=${this._onError} @loadeddata=${this._onLoadedData} @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._onLoadedMetadata} @timeupdate=${this._onTimeUpdate} @volumechange=${this._onVolumeChange}>
 						<source src="${this.src}">
 					</video>
 				`;
@@ -941,7 +1003,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 				const playIcon = `tier3:${this._playing ? 'pause' : 'play'}`;
 
 				return html`
-					<audio crossorigin="anonymous" id="d2l-labs-media-player-audio" ?controls="${NATIVE_CONTROLS}" ?autoplay="${this.autoplay}" ?loop="${this.loop}" preload="metadata" @ended=${this._onEnded} @loadeddata=${this._onLoadedData} @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._onLoadedMetadata} @timeupdate=${this._onTimeUpdate} @volumechange=${this._onVolumeChange}>
+					<audio crossorigin="anonymous" id="d2l-labs-media-player-audio" ?controls="${NATIVE_CONTROLS}" ?autoplay="${this.autoplay}" ?loop="${this.loop}" preload="metadata" @ended=${this._onEnded} @error=${this._onError} @loadeddata=${this._onLoadedData} @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._onLoadedMetadata} @timeupdate=${this._onTimeUpdate} @volumechange=${this._onVolumeChange}>
 						<source src="${this.src}"></source>
 					</audio>
 
@@ -969,6 +1031,20 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 				</d2l-menu>
 			</d2l-labs-media-player-menu-item>
 		` : null;
+	}
+
+	_setLoadErrorMessage() {
+		this._message = {
+			text: this.localize('loadErrorMessage'),
+			type: MESSAGE_TYPES.error
+		};
+	}
+
+	_setLoadSuccessMessage() {
+		this._message = {
+			text: this.localize('loadSuccessMessage'),
+			type: MESSAGE_TYPES.success
+		};
 	}
 }
 
