@@ -469,7 +469,6 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		const trackContainerStyle = { bottom: this._hidingCustomControls() ? '1rem' : '3rem', fontSize: `${this._trackFontSizeRem}rem`, lineHeight: `${this._trackFontSizeRem * 1.2}rem` };
 
 		const volumeLevelContainerClass = !this._usingVolumeContainer || this._hidingCustomControls() ? 'hidden' : '';
-		const playerButtonClass = `d2l-labs-media-player-button ${this._sourceType === SOURCE_TYPES.video ? 'video' : 'audio'}`;
 
 		return html`
 		<slot @slotchange=${this._onSlotChange}></slot>
@@ -493,13 +492,13 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 				<d2l-seek-bar fullWidth solid id="d2l-labs-media-player-seek-bar" value="${Math.floor(this.currentTime / this._duration * 100)}" aria-label="${this.localize('seekSlider')}" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.floor(this.currentTime / this._duration * 100)}" title="${this.localize('seekSlider')}" @drag-start=${this._onDragStartSeek} @drag-end=${this._onDragEndSeek} @position-change=${this._onPositionChangeSeek}></d2l-seek-bar>
 				<div id="d2l-labs-media-player-buttons">
 					<div class="d2l-labs-media-player-control-element ${this._sourceType}">
-						<button class="${playerButtonClass}" id="d2l-labs-media-player-play-button" title="${playTooltip}" aria-label="${playTooltip}" @click=${this._togglePlay}>
+						<button class="d2l-labs-media-player-button ${this._sourceType}" id="d2l-labs-media-player-play-button" title="${playTooltip}" aria-label="${playTooltip}" @click=${this._togglePlay}>
 							<d2l-icon icon="${playIcon}" style=${styleMap(controlDisplayStyle)}></d2l-icon>
 						</button>
 					</div>
 
 					<div class="d2l-labs-media-player-control-element ${this._sourceType}" id="d2l-labs-media-player-volume-container" @mouseenter=${this._startUsingVolumeContainer} @mouseleave=${this._stopUsingVolumeContainer}>
-						<button class="${playerButtonClass}" id="d2l-labs-media-player-volume-button" title="${volumeTooltip}" aria-label="${volumeTooltip}" @click=${this._toggleMute} @focus=${this._startUsingVolumeContainer} @focusout=${this._stopUsingVolumeContainer}>
+						<button class="d2l-labs-media-player-button ${this._sourceType}" id="d2l-labs-media-player-volume-button" title="${volumeTooltip}" aria-label="${volumeTooltip}" @click=${this._toggleMute} @focus=${this._startUsingVolumeContainer} @focusout=${this._stopUsingVolumeContainer}>
 							<d2l-icon icon="${volumeIcon}" style=${styleMap(controlDisplayStyle)}></d2l-icon>
 						</button>
 
@@ -517,13 +516,13 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 					<div class="d2l-labs-media-player-flex-filler"></div>
 
 					<div class="d2l-labs-media-player-control-element ${this._sourceType !== SOURCE_TYPES.video ? 'd2l-labs-media-player-control-element-last' : ''}  ${this._sourceType}">
-						<button class="${playerButtonClass}" id="d2l-labs-media-player-settings-button" label="${this.localize('settings')}" style=${styleMap(controlDisplayStyle)} aria-label="${this.localize('settings')}" @click=${this._settingsButtonClick}>
+						<button class="d2l-labs-media-player-button ${this._sourceType}" id="d2l-labs-media-player-settings-button" label="${this.localize('settings')}" style=${styleMap(controlDisplayStyle)} aria-label="${this.localize('settings')}" @click=${this._settingsButtonClick}>
 							<d2l-icon icon="tier1:gear" style=${styleMap(controlDisplayStyle)}></d2l-icon>
 						</button>
 					</div>
 
 					<div id="d2l-labs-media-player-fullscreen" class="d2l-labs-media-player-control-element d2l-labs-media-player-control-element-last  ${this._sourceType}" ?hidden="${this._sourceType !== SOURCE_TYPES.video}">
-						<button ?hidden="${!FULLSCREEN_ENABLED}" class="${playerButtonClass}" title="${fullscreenTooltip}" aria-label="${fullscreenTooltip}" @click=${this._toggleFullscreen}>
+						<button ?hidden="${!FULLSCREEN_ENABLED}" class="d2l-labs-media-player-button ${this._sourceType}" title="${fullscreenTooltip}" aria-label="${fullscreenTooltip}" @click=${this._toggleFullscreen}>
 							<d2l-icon icon="${fullscreenIcon}" style=${styleMap(controlDisplayStyle)}></d2l-icon>
 						</button>
 					</div>
@@ -779,7 +778,6 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		this._tracks.forEach(track => {
 			if (track.srt) {
 				const trackElement = this._media.addTextTrack(track.kind, track.label, track.srclang);
-				trackElement.mode = 'disabled';
 				trackElement.oncuechange = this._onCueChange.bind(this);
 
 				track.cues.forEach(cue => {
@@ -787,7 +785,6 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 				});
 			} else {
 				const trackElement = document.createElement('track');
-				trackElement.mode = 'disabled';
 				trackElement.src = track.src;
 				trackElement.label = track.label;
 				trackElement.kind = track.kind;
@@ -796,6 +793,12 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 				this._media.appendChild(trackElement);
 			}
 		});
+
+		setTimeout(() => {
+			for (let i = 0; i < this._media.textTracks.length; i++) {
+				this._media.textTracks[i].mode = 'disabled';
+			}
+		}, 0);
 	}
 
 	_onPlaybackSpeedsMenuItemChange(e) {
