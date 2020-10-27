@@ -616,6 +616,18 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		if (!this._media.paused) this._togglePlay();
 	}
 
+	requestFullscreen() {
+		if (fullscreenApi.isFullscreen) return;
+
+		this._toggleFullscreen();
+	}
+
+	exitFullscreen() {
+		if (!fullscreenApi.isFullscreen) return;
+
+		this._toggleFullscreen();
+	}
+
 	_mediaContainerClicked() {
 		if (!this.shadowRoot.activeElement || this.shadowRoot.activeElement.id !== 'd2l-labs-media-player-settings-menu') {
 			this._usingSettingsMenu = false;
@@ -884,6 +896,8 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 
 	_toggleFullscreen() {
 		if (!FULLSCREEN_ENABLED) return;
+
+		if (this._sourceType !== SOURCE_TYPES.video) return;
 
 		if (fullscreenApi.isFullscreen) {
 			fullscreenApi.exit();

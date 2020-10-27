@@ -73,10 +73,12 @@ console.log(`Current playback time of the media player = ${this.document.querySe
 
 **Methods:**
 
-| Method | Description |
-|--|--|
-| play() | Begins playing the media. Ignored if the media is already playing.
-| pause() | Pauses the media. Ignored if the media is already paused.
+| Method | Type | Description |
+|--|--|--|
+| exitFullscreen() | void | Requests to exit fullscreen mode from the browser. Ignored if it is not playing video content, or if the video is not in fullscreen mode.
+| play() | void | Begins playing the media. Ignored if the media is already playing.
+| pause() | void | Pauses the media. Ignored if the media is already paused.
+| requestFullscreen() | void | Requests fullscreen mode from the browser. Ignored if it is not playing video content, or the video is already in fullscreen mode.
 
 ```
 // Programatically pause the media player

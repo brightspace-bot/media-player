@@ -3,3 +3,4 @@ node_modules/
 package-lock.json
 test/screenshots/current/
 test/screenshots/golden/
+.DS_Store
