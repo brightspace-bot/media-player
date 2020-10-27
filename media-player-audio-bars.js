@@ -21,12 +21,13 @@ class MediaPlayerAudioBars extends LitElement {
 			#d2l-labs-media-player-audio-bars-row {
 				display: flex;
 				flex-direction: row;
+				height: 100%;
 			}
 
 			#d2l-labs-media-player-audio-bar-container {
 				display: flex;
 				flex-direction: column;
-				height: 2rem;
+				height: 100%;
 			}
 
 			.d2l-labs-media-player-audio-bar {

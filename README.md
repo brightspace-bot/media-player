@@ -89,6 +89,7 @@ this.document.querySelector('d2l-labs-media-player').pause();
 | Event | Description |
 |--|--|
 | ended | Dispatched when the media has reached the end of its duration. |
+| error | Dispatched when the media failed to load. |
 | loadeddata | Dispatched when the media at the current playback position has finished loading. Often the first frame. |
 | loadedmetadata | Dispatched when the metadata for the media has finished loading. |
 | play | Dispatched when the media begins playing. |
@@ -125,6 +126,14 @@ The media player supports captions and subtitles, provided as `.srt` or `.vtt` f
 | label | String, required | The label for the track, displayed to the user for selection.
 | src | String, required | The URL of the source file.
 | srclang | String, required | The language's code.
+
+## Accessibility
+
+The following features are implemented to improve accessibility:
+
+- all controls can be accessed using the mouse or keyboard
+- captions can be provided to the media player
+- important events, such as a media source failing to load, are displayed visually and announced by screen readers
 
 ## Developing, Testing and Contributing
 
