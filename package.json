@@ -43,7 +43,7 @@
     "frau-ci": "^1",
     "karma-sauce-launcher": "^2",
     "lit-analyzer": "^1",
-    "puppeteer": "^4",
+    "puppeteer": "^5",
     "require-dir": "^1.2.0"
   },
   "dependencies": {
