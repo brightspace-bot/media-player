@@ -64,6 +64,8 @@ npm install @brightspace-ui-labs/media-player
 |--|--|--|--|
 | currentTime | Number | Get & Set | Current time playback time of the media in seconds. |
 | duration | Number | Get | Total duration of the media in seconds. |
+| ended | Boolean | Get | Whether or not the video has ended. |
+| paused | Boolean | Get | Whether or not the video is currently paused. |
 
 ```
 // Programatically determine the current playback time of the media player
