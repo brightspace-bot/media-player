@@ -467,6 +467,10 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		return this._media.paused;
 	}
 
+	get sourceType() {
+		return this._sourceType;
+	}
+
 	render() {
 		const fullscreenIcon = fullscreenApi.isFullscreen ? 'tier1:smallscreen' : 'tier1:fullscreen';
 		const playIcon = this._playing ? 'tier1:pause' : 'tier1:play';
