@@ -116,6 +116,13 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 				width: 100%;
 			}
 
+			.d2l-labs-media-player-type-is-audio #d2l-labs-media-player-media-controls {
+				background-color: #ffffff;
+			}
+			.d2l-labs-media-player-type-is-video #d2l-labs-media-player-media-controls {
+				background-color: rgba(0, 0, 0, 0.69);
+			}
+
 			#d2l-labs-media-player-media-controls.hidden {
 				bottom: -8rem;
 			}
