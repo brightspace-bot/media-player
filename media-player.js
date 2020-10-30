@@ -378,14 +378,12 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		const mediaContainerClass = { 'd2l-labs-media-player-type-is-audio': this._sourceType === SOURCE_TYPES.audio, 'd2l-labs-media-player-type-is-video': this._sourceType === SOURCE_TYPES.video, 'd2l-labs-media-player-type-is-unknown': this._sourceType === SOURCE_TYPES.unknown };
 		const mediaControlsClass = { hidden: this._hidingCustomControls() };
 		const theme = this._sourceType === SOURCE_TYPES.video ? 'dark' : undefined;
-		const translucent = this._sourceType === SOURCE_TYPES.video;
 		const volumeLevelContainerClass = { hidden: !this._usingVolumeContainer || this._hidingCustomControls() };
 
 		const fullscreenButton = this._sourceType === SOURCE_TYPES.video ? html`<d2l-button-icon
 			class="d2l-dropdown-opener"
 			icon="${fullscreenIcon}"
 			text="${fullscreenTooltip}"
-			?translucent=${translucent}
 			theme="${ifDefined(theme)}"
 			@click="${this._toggleFullscreen}"></d2l-button-icon>` : null;
 
@@ -410,7 +408,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			<div class=${classMap(mediaControlsClass)} id="d2l-labs-media-player-media-controls" ?hidden="${NATIVE_CONTROLS}" @mouseenter=${this._startHoveringControls} @mouseleave=${this._stopHoveringControls}>
 				<d2l-seek-bar fullWidth solid id="d2l-labs-media-player-seek-bar" value="${Math.floor(this.currentTime / this._duration * 100)}" aria-label="${this.localize('seekSlider')}" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.floor(this.currentTime / this._duration * 100)}" title="${this.localize('seekSlider')}" @drag-start=${this._onDragStartSeek} @drag-end=${this._onDragEndSeek} @position-change=${this._onPositionChangeSeek}></d2l-seek-bar>
 				<div id="d2l-labs-media-player-buttons">
-					<d2l-button-icon icon="${playIcon}" text="${playTooltip}"  @click="${this._togglePlay}" ?translucent="${translucent}" theme="${ifDefined(theme)}"></d2l-button-icon>
+					<d2l-button-icon icon="${playIcon}" text="${playTooltip}"  @click="${this._togglePlay}" theme="${ifDefined(theme)}"></d2l-button-icon>
 
 					<div id="d2l-labs-media-player-volume-container" @mouseenter="${this._startUsingVolumeContainer}" @mouseleave="${this._stopUsingVolumeContainer}">
 						<d2l-button-icon
@@ -418,7 +416,6 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 							icon="${volumeIcon}"
 							text="${volumeTooltip}"
 							theme="${ifDefined(theme)}"
-							?translucent="${translucent}"
 							@blur="${this._stopUsingVolumeContainer}"
 							@click="${this._toggleMute}"
 							@focus="${this._startUsingVolumeContainer}"></d2l-button-icon>
@@ -436,7 +433,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 					<div class="d2l-labs-media-player-flex-filler"></div>
 
 					<d2l-dropdown>
-						<d2l-button-icon class="d2l-dropdown-opener" icon="tier1:gear" text="${this.localize('settings')}" ?translucent=${translucent} theme="${ifDefined(theme)}"></d2l-button-icon>
+						<d2l-button-icon class="d2l-dropdown-opener" icon="tier1:gear" text="${this.localize('settings')}" theme="${ifDefined(theme)}"></d2l-button-icon>
 						<d2l-dropdown-menu id="d2l-labs-media-player-settings-menu" no-pointer theme="${ifDefined(theme)}" vertical-offset="10">
 							<d2l-menu label="${this.localize('settings')}" theme="${ifDefined(theme)}">
 								<d2l-menu-item id="d2l-labs-media-player-playback-speeds" text="${this.localize('playbackSpeed')}">
