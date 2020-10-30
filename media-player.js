@@ -885,10 +885,11 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 	}
 
 	_getTracksMenuView() {
+		const theme = this._sourceType === SOURCE_TYPES.video ? 'dark' : undefined;
 		return this._tracks.length > 0 ? html`
 			<d2l-menu-item text="${this.localize('subtitles')}">
 				<div slot="supporting">${this._trackMenuValue}</div>
-				<d2l-menu @d2l-menu-item-change=${this._onTracksMenuItemChange}>
+				<d2l-menu @d2l-menu-item-change=${this._onTracksMenuItemChange} theme="${ifDefined(theme)}">
 					<d2l-menu-item-radio text="${this.localize('off')}" value="${this.localize('off')}" selected></d2l-menu-item-radio>
 					${this._tracks.map(track => html`
 						<d2l-menu-item-radio text="${`${track.label}${track.kind === TRACK_KINDS.captions ? ' (CC)' : ''}`}" value="${track.srclang}"></d2l-menu-item-radio>
