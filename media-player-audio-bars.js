@@ -66,13 +66,16 @@ class MediaPlayerAudioBars extends LitElement {
 
 	static get styles() {
 		return css`
+			:host {
+				width: 100%;
+			}
+
 			#d2l-labs-media-player-audio-bars-row {
 				align-items: center;
 				justify-content: center;
 				display: flex;
 				flex-direction: row;
 				height: 100%;
-				width: 100%;
 			}
 
 			#d2l-labs-media-player-audio-bar-container {
@@ -164,7 +167,9 @@ class MediaPlayerAudioBars extends LitElement {
 
 		this._changeColoursOfAudioBars();
 
-		setInterval(() => {
+		clearInterval(this._changingAudioBarsInterval);
+
+		this._changingAudioBarsInterval = setInterval(() => {
 			if (!this.playing) return;
 
 			this._changeColoursOfAudioBars();
@@ -193,41 +198,38 @@ class MediaPlayerAudioBars extends LitElement {
 	_getRgbOfAudioBar(i) {
 		const fraction = i / this._audioBarColours.length;
 
-		let fromColour;
-		let toColour;
-		let innerFraction;
+		const { from, to, fractionPassedNonInclusive, fractionPassedInclusive } = MediaPlayerAudioBars._getGradientFromFraction(fraction);
 
-		if (fraction < 0.25) {
-			fromColour = AUDIO_BARS_GRADIENT_COLOURS.start;
-			toColour = AUDIO_BARS_GRADIENT_COLOURS.middle;
-			innerFraction = fraction * 4;
-		} else if (fraction < 0.5) {
-			fromColour = AUDIO_BARS_GRADIENT_COLOURS.middle;
-			toColour = AUDIO_BARS_GRADIENT_COLOURS.end;
-			innerFraction = (fraction - 0.25) * 4;
-		} else if (fraction < 0.75) {
-			fromColour = AUDIO_BARS_GRADIENT_COLOURS.end;
-			toColour = AUDIO_BARS_GRADIENT_COLOURS.middle;
-			innerFraction = (fraction - 0.5) * 4;
-		} else {
-			fromColour = AUDIO_BARS_GRADIENT_COLOURS.middle;
-			toColour = AUDIO_BARS_GRADIENT_COLOURS.start;
-			innerFraction = (fraction - 0.75) * 4;
-		}
+		const innerFraction = (fraction - fractionPassedNonInclusive) / (fractionPassedInclusive - fractionPassedNonInclusive);
 
-		const fromRed = parseInt(fromColour.substr(0, 2), 16);
-		const toRed = parseInt(toColour.substr(0, 2), 16);
+		const fromRedSRGB = parseInt(from.substr(0, 2), 16);
+		const fromRedLinear = MediaPlayerAudioBars._fromSRGB(fromRedSRGB);
+		const fromGreenSRGB = parseInt(from.substr(2, 2), 16);
+		const fromGreenLinear = MediaPlayerAudioBars._fromSRGB(fromGreenSRGB);
+		const fromBlueSRGB = parseInt(from.substr(4, 2), 16);
+		const fromBlueLinear = MediaPlayerAudioBars._fromSRGB(fromBlueSRGB);
+		const fromBrightness = Math.pow(fromRedLinear + fromGreenLinear + fromBlueLinear, GAMMA);
 
-		const fromGreen = parseInt(fromColour.substr(2, 4), 16);
-		const toGreen = parseInt(toColour.substr(2, 4), 16);
+		const toRedSRGB = parseInt(to.substr(0, 2), 16);
+		const toRedLinear = MediaPlayerAudioBars._fromSRGB(toRedSRGB);
+		const toGreenSRGB = parseInt(to.substr(2, 2), 16);
+		const toGreenLinear = MediaPlayerAudioBars._fromSRGB(toGreenSRGB);
+		const toBlueSRGB = parseInt(to.substr(4, 2), 16);
+		const toBlueLinear = MediaPlayerAudioBars._fromSRGB(toBlueSRGB);
+		const toBrightness = Math.pow(toRedLinear + toGreenLinear + toBlueLinear, GAMMA);
 
-		const fromBlue = parseInt(fromColour.substr(4, 6), 16);
-		const toBlue = parseInt(toColour.substr(4, 6), 16);
+		const brightness = Math.pow(MediaPlayerAudioBars._weightedAverage(fromBrightness, toBrightness, innerFraction), 1 / GAMMA);
+
+		const redWithoutBrightness = MediaPlayerAudioBars._weightedAverage(fromRedLinear, toRedLinear, innerFraction);
+		const greenWithoutBrightness = MediaPlayerAudioBars._weightedAverage(fromGreenLinear, toGreenLinear, innerFraction);
+		const blueWithoutBrightness = MediaPlayerAudioBars._weightedAverage(fromBlueLinear, toBlueLinear, innerFraction);
+
+		const sumWithoutBrightness = redWithoutBrightness + greenWithoutBrightness + blueWithoutBrightness;
 
 		return {
-			red: Math.round(fromRed + (toRed - fromRed) * innerFraction),
-			green: Math.round(fromGreen + (toGreen - fromGreen) * innerFraction),
-			blue: Math.round(fromBlue + (toBlue - fromBlue) * innerFraction)
+			red: MediaPlayerAudioBars._toSRGB(redWithoutBrightness * brightness / sumWithoutBrightness),
+			green: MediaPlayerAudioBars._toSRGB(greenWithoutBrightness * brightness / sumWithoutBrightness),
+			blue: MediaPlayerAudioBars._toSRGB(blueWithoutBrightness * brightness / sumWithoutBrightness)
 		};
 	}
 

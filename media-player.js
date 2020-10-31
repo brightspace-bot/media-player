@@ -218,6 +218,8 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 				flex-wrap: nowrap;
 				height: 8.5rem;
 				justify-content: center;
+				left: 2.55rem;
+				position: relative;
 				width: calc(100% - 5.1rem);
 			}
 
@@ -412,7 +414,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 
 					<div id="d2l-labs-media-player-volume-container" @mouseenter="${this._startUsingVolumeContainer}" @mouseleave="${this._stopUsingVolumeContainer}">
 						<d2l-button-icon
-							class="d2l-dropdown-opener" 
+							class="d2l-dropdown-opener"
 							icon="${volumeIcon}"
 							text="${volumeTooltip}"
 							theme="${ifDefined(theme)}"
