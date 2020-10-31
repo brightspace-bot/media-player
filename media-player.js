@@ -1039,7 +1039,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 				`;
 			case SOURCE_TYPES.audio:
 				return html`
-					<audio crossorigin="anonymous" id="d2l-labs-media-player-audio" ?controls="${NATIVE_CONTROLS}" ?autoplay="${this.autoplay}" ?loop="${this.loop}" preload="metadata" @ended=${this._onEnded} @error=${this._onError} @loadeddata=${this._onLoadedData} @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._onLoadedMetadata} @timeupdate=${this._onTimeUpdate} @volumechange=${this._onVolumeChange}>
+					<audio id="d2l-labs-media-player-audio" ?controls="${NATIVE_CONTROLS}" ?autoplay="${this.autoplay}" ?loop="${this.loop}" preload="metadata" @ended=${this._onEnded} @error=${this._onError} @loadeddata=${this._onLoadedData} @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._onLoadedMetadata} @timeupdate=${this._onTimeUpdate} @volumechange=${this._onVolumeChange}>
 						<source src="${this.src}"></source>
 					</audio>
 

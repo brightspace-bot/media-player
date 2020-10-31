@@ -116,12 +116,8 @@ class MediaPlayerAudioBars extends LitElement {
 	firstUpdated(changedProperties) {
 		super.firstUpdated(changedProperties);
 
-		let loops = 0;
 		new ResizeObserver((entries) => {
 			for (const entry of entries) {
-				loops++;
-
-				// if (loops > 2) return;
 				const { width } = entry.contentRect;
 
 				const fontSize = getComputedStyle(document.documentElement).fontSize;
