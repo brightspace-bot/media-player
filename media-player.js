@@ -323,7 +323,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 				flex-wrap: nowrap;
 				height: 8.5rem;
 				justify-content: center;
-				width: 100%;
+				width: calc(100% - 5.1rem);
 			}
 
 			d2l-labs-media-player-audio-bars {
@@ -361,12 +361,12 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 				border: none;
 				border-radius: 9px;
 				display: flex;
-				height: 3rem;
+				height: 2.75rem;
 				justify-content: center;
 				margin: 0;
 				padding: 2px;
 				position: absolute;
-				width: 3rem;
+				width: 2.75rem;
 			}
 
 			#d2l-labs-media-player-audio-play-button:hover {
@@ -382,8 +382,8 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			}
 
 			#d2l-labs-media-player-audio-play-button > d2l-icon {
-				height: 3rem;
-				width: 3rem;
+				height: 2.75rem;
+				width: 2.75rem;
 			}
 		`;
 	}
@@ -1039,7 +1039,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 				`;
 			case SOURCE_TYPES.audio:
 				return html`
-					<audio id="d2l-labs-media-player-audio" ?controls="${NATIVE_CONTROLS}" ?autoplay="${this.autoplay}" ?loop="${this.loop}" preload="metadata" @ended=${this._onEnded} @error=${this._onError} @loadeddata=${this._onLoadedData} @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._onLoadedMetadata} @timeupdate=${this._onTimeUpdate} @volumechange=${this._onVolumeChange}>
+					<audio crossorigin="anonymous" id="d2l-labs-media-player-audio" ?controls="${NATIVE_CONTROLS}" ?autoplay="${this.autoplay}" ?loop="${this.loop}" preload="metadata" @ended=${this._onEnded} @error=${this._onError} @loadeddata=${this._onLoadedData} @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._onLoadedMetadata} @timeupdate=${this._onTimeUpdate} @volumechange=${this._onVolumeChange}>
 						<source src="${this.src}"></source>
 					</audio>
 
