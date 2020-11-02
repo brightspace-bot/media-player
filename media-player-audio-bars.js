@@ -1,6 +1,6 @@
 import { css, html, LitElement } from 'lit-element/lit-element.js';
-import { styleMap } from 'lit-html/directives/style-map';
 import ResizeObserver from 'resize-observer-polyfill';
+import { styleMap } from 'lit-html/directives/style-map';
 
 const AUDIO_BARS_GRADIENTS = [
 	{
@@ -46,7 +46,7 @@ AUDIO_BARS_GRADIENTS.forEach((gradient, i) => {
 		gradient.to = AUDIO_BARS_GRADIENTS[0].from;
 	}
 });
-const AUDIO_BAR_HEIGHTS = [30, 45, 50, 60, 58, 55, 100, 80, 95, 94, 60, 94, 93, 93, 93, 93, 92, 55, 45, 45, 54, 55, 53, 52, 50, 51, 51, 51, 51, 51, 52, 60, 60, 63, 59, 58, 59, 90, 95, 85, 86, 85, 80, 79, 77, 70, 54, 60, 65, 64, 64, 60, 69, 70, 75, 65, 66, 67, 70, 68, 69, 60, 59, 60, 10, 25, 26, 100, 95, 95, 93, 95, 77, 75, 76, 76, 77, 80, 79, 79, 75, 60, 59, 62, 63, 62, 45, 50, 52, 45, 49, 49, 49, 48, 47, 47];
+const AUDIO_BAR_HEIGHTS = [35, 54, 65, 86, 81, 67, 100, 90, 100, 98, 75, 99, 98, 96, 96, 95, 65, 50, 50, 60, 64, 54, 50, 44, 45, 46, 47, 45, 53, 67, 68, 76, 65, 63, 67, 91, 97, 86, 88, 86, 84, 84, 82, 0, 0, 0, 0, 0, 0, 0, 0, 0, 69, 70, 68, 67, 72, 76, 86, 81, 83, 67, 65, 67, 21, 44, 45, 97, 86, 85, 81, 84, 70, 65, 67, 67, 72, 79, 76, 76, 63, 44, 42, 50, 54, 49, 33, 42, 44, 33, 38, 38, 36, 37, 35, 34];
 const AUDIO_BAR_HORIZONTAL_MARGIN_REM = 0.05;
 const AUDIO_BAR_WIDTH_REM = 0.25;
 const FULL_BYTE = 255;
@@ -93,6 +93,42 @@ class MediaPlayerAudioBars extends LitElement {
 		`;
 	}
 
+	/**
+	 * Converts a [0..255] SRGB value to a [0..1] linear value.
+	 * @param {Number} rgb SRGB representation of the colour.
+	 * @returns {Number} Linear value of the colour.
+	 */
+	static _fromSRGB(rgb) {
+		rgb /= FULL_BYTE;
+
+		return rgb <= 0.04045 ? rgb / UNDER_LINEAR_THRESHOLD_FACTOR : Math.pow((rgb + LINEAR_OFFSET) / (1 + LINEAR_OFFSET), GAMMA_ADJUSTMENT_EXPONENT);
+	}
+
+	static _getGradientFromFraction(fraction) {
+		for (let i = 0; i < AUDIO_BARS_GRADIENTS.length; i++) {
+			if (fraction < AUDIO_BARS_GRADIENTS[i].fractionPassedInclusive) return AUDIO_BARS_GRADIENTS[i];
+		}
+	}
+
+	/**
+	 * Converts a [0..1] linear value to a [0..255] SRGB value.
+	 * @param {Number} rgb Linear representation of the colour.
+	 * @returns {Number} SRGB value of the colour.
+	 */
+	static _toSRGB(rgb) {
+		if (rgb <= 0.0031308) {
+			rgb *= UNDER_LINEAR_THRESHOLD_FACTOR;
+		} else {
+			rgb = ((1 + LINEAR_OFFSET) * (Math.pow(rgb, 1 / GAMMA_ADJUSTMENT_EXPONENT))) - LINEAR_OFFSET;
+		}
+
+		return (FULL_BYTE + 1) * rgb;
+	}
+
+	static _weightedAverage(a, b, weightOfB) {
+		return a + (b - a) * weightOfB;
+	}
+
 	constructor() {
 		super();
 
@@ -129,7 +165,8 @@ class MediaPlayerAudioBars extends LitElement {
 				const audioBarWidthPx = AUDIO_BAR_WIDTH_REM * pxPerRem;
 				const audioBarHorizontalMarginPx = AUDIO_BAR_HORIZONTAL_MARGIN_REM * pxPerRem;
 				const numAudioBarsThatCanFit = Math.floor(width / (audioBarWidthPx + 2 * audioBarHorizontalMarginPx));
-				this._numVisibleAudioBars = Math.min(numAudioBarsThatCanFit, AUDIO_BAR_HEIGHTS.length);
+				const numAudioBarsThatCanFitNextOdd = numAudioBarsThatCanFit % 2 === 1 ? numAudioBarsThatCanFit : numAudioBarsThatCanFit - 1;
+				this._numVisibleAudioBars = Math.min(numAudioBarsThatCanFitNextOdd, AUDIO_BAR_HEIGHTS.length);
 				const numAudioBarColours = Math.floor(this._numVisibleAudioBars * (1 + (AUDIO_BARS_GRADIENTS_OFFSET / AUDIO_BARS_GRADIENTS_DISPLAYED_WEIGHT)));
 
 				this._audioBarColours = [];
@@ -231,42 +268,6 @@ class MediaPlayerAudioBars extends LitElement {
 			green: MediaPlayerAudioBars._toSRGB(greenWithoutBrightness * brightness / sumWithoutBrightness),
 			blue: MediaPlayerAudioBars._toSRGB(blueWithoutBrightness * brightness / sumWithoutBrightness)
 		};
-	}
-
-	static _getGradientFromFraction(fraction) {
-		for (let i = 0; i < AUDIO_BARS_GRADIENTS.length; i++) {
-			if (fraction < AUDIO_BARS_GRADIENTS[i].fractionPassedInclusive) return AUDIO_BARS_GRADIENTS[i];
-		}
-	}
-
-	/**
-	 * Converts a [0..255] SRGB value to a [0..1] linear value.
-	 * @param {Number} rgb SRGB representation of the colour.
-	 * @returns {Number} Linear value of the colour.
-	 */
-	static _fromSRGB(rgb) {
-		rgb /= FULL_BYTE;
-
-		return rgb <= 0.04045 ? rgb / UNDER_LINEAR_THRESHOLD_FACTOR : Math.pow((rgb + LINEAR_OFFSET) / (1 + LINEAR_OFFSET), GAMMA_ADJUSTMENT_EXPONENT);
-	}
-
-	/**
-	 * Converts a [0..1] linear value to a [0..255] SRGB value.
-	 * @param {Number} rgb Linear representation of the colour.
-	 * @returns {Number} SRGB value of the colour.
-	 */
-	static _toSRGB(rgb) {
-		if (rgb <= 0.0031308) {
-			rgb *= UNDER_LINEAR_THRESHOLD_FACTOR;
-		} else {
-			rgb = ((1 + LINEAR_OFFSET) * (Math.pow(rgb, 1 / GAMMA_ADJUSTMENT_EXPONENT))) - LINEAR_OFFSET;
-		}
-
-		return (FULL_BYTE + 1) * rgb;
-	}
-
-	static _weightedAverage(a, b, weightOfB) {
-		return a + (b - a) * weightOfB;
 	}
 }
 

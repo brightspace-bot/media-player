@@ -1,5 +1,6 @@
 export default {
 	default: 'Default',
+	download: 'Download',
 	exitFullscreen: 'Exit fullscreen',
 	fullscreen: 'Fullscreen',
 	loadErrorMessage: 'An error occurred while trying to load the media',
