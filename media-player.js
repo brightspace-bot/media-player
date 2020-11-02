@@ -45,6 +45,7 @@ const TRACK_KINDS = {
 	captions: 'captions',
 	subtitles: 'subtitles'
 };
+const Url = URL || window.URL;
 
 class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 
@@ -752,7 +753,10 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		const link = document.createElement('a');
 		link.download = 'download';
 		link.target = '_blank';
-		link.href = this.src;
+		const url = new Url(this.src);
+		const searchParams = url.searchParams;
+		searchParams.append('download', 'true');
+		link.href = url.toString();
 		link.click();
 	}
 
