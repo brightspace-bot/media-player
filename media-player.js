@@ -288,6 +288,11 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 				left: 0.9rem;
 				bottom: 2.65rem;
 			}
+
+			[dir="rtl"] #d2l-labs-media-player-settings-menu {
+				left: 0;
+				right: -0.8rem;
+			}
 		`;
 	}
 
@@ -415,7 +420,21 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			</div>
 
 			<div class=${classMap(mediaControlsClass)} id="d2l-labs-media-player-media-controls" ?hidden="${NATIVE_CONTROLS}" @mouseenter=${this._startHoveringControls} @mouseleave=${this._stopHoveringControls}>
-				<d2l-seek-bar fullWidth solid id="d2l-labs-media-player-seek-bar" value="${Math.floor(this.currentTime / this._duration * 100)}" aria-label="${this.localize('seekSlider')}" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.floor(this.currentTime / this._duration * 100)}" title="${this.localize('seekSlider')}" @drag-start=${this._onDragStartSeek} @drag-end=${this._onDragEndSeek} @position-change=${this._onPositionChangeSeek}></d2l-seek-bar>
+				<d2l-seek-bar
+					id="d2l-labs-media-player-seek-bar"
+					fullWidth
+					solid
+					value="${Math.floor(this.currentTime / this._duration * 100)}"
+					aria-label="${this.localize('seekSlider')}"
+					aria-orientation="horizontal"
+					aria-valuemin="0"
+					aria-valuemax="100"
+					aria-valuenow="${Math.floor(this.currentTime / this._duration * 100)}"
+					title="${this.localize('seekSlider')}"
+					@drag-start=${this._onDragStartSeek}
+					@drag-end=${this._onDragEndSeek}
+					@position-change=${this._onPositionChangeSeek}
+				></d2l-seek-bar>
 				<div id="d2l-labs-media-player-buttons">
 					<d2l-button-icon icon="${playIcon}" text="${playTooltip}"  @click="${this._togglePlay}" theme="${ifDefined(theme)}"></d2l-button-icon>
 
@@ -427,10 +446,23 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 							theme="${ifDefined(theme)}"
 							@blur="${this._stopUsingVolumeContainer}"
 							@click="${this._toggleMute}"
-							@focus="${this._startUsingVolumeContainer}"></d2l-button-icon>
+							@focus="${this._startUsingVolumeContainer}"
+						></d2l-button-icon>
 						<div id="d2l-labs-media-player-volume-level-container" class=${classMap(volumeLevelContainerClass)}>
 							<div class="d2l-labs-media-player-rotated" id="d2l-labs-media-player-volume-level-background">
-								<d2l-seek-bar solid id="d2l-labs-media-player-volume-level" vertical value="${Math.round(this._volume * 100)}" aria-label="${this.localize('volumeSlider')}" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.floor(this._volume * 100)}" title="${this.localize('volumeSlider')}" @position-change=${this._onPositionChangeVolume} @focus=${this._startUsingVolumeContainer} @focusout=${this._stopUsingVolumeContainer}></d2l-seek-bar>
+								<d2l-seek-bar solid
+									id="d2l-labs-media-player-volume-level"
+									vertical
+									value="${Math.round(this._volume * 100)}"
+									aria-label="${this.localize('volumeSlider')}"
+									aria-orientation="vertical" aria-valuemin="0"
+									aria-valuemax="100"
+									aria-valuenow="${Math.floor(this._volume * 100)}"
+									title="${this.localize('volumeSlider')}"
+									@position-change=${this._onPositionChangeVolume}
+									@focus=${this._startUsingVolumeContainer}
+									@focusout=${this._stopUsingVolumeContainer}
+								></d2l-seek-bar>
 							</div>
 						</div>
 					</div>
@@ -454,7 +486,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 									</d2l-menu>
 								</d2l-menu-item>
 								${this._getTracksMenuView()}
-								${this._getDownloadBottonView()}
+								${this._getDownloadButtonView()}
 							</d2l-menu>
 						</d2l-dropdown-menu>
 					</d2l-dropdown>
@@ -885,13 +917,43 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		switch (this._sourceType) {
 			case SOURCE_TYPES.video:
 				return html`
-					<video ?controls="${NATIVE_CONTROLS}" id="d2l-labs-media-player-video" ?autoplay="${this.autoplay}" ?loop="${this.loop}" poster="${ifDefined(this.poster)}" preload="metadata" @click=${this._onVideoClick} @ended=${this._onEnded} @error=${this._onError} @loadeddata=${this._onLoadedData} @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._onLoadedMetadata} @timeupdate=${this._onTimeUpdate} @volumechange=${this._onVolumeChange}>
+					<video
+						id="d2l-labs-media-player-video"
+						?controls="${NATIVE_CONTROLS}"
+						?autoplay="${this.autoplay}"
+						?loop="${this.loop}"
+						poster="${ifDefined(this.poster)}"
+						preload="metadata"
+						@click=${this._onVideoClick}
+						@ended=${this._onEnded}
+						@error=${this._onError}
+						@loadeddata=${this._onLoadedData}
+						@play=${this._onPlay}
+						@pause=${this._onPause}
+						@loadedmetadata=${this._onLoadedMetadata}
+						@timeupdate=${this._onTimeUpdate}
+						@volumechange=${this._onVolumeChange}
+					>
 						<source src="${this.src}">
 					</video>
 				`;
 			case SOURCE_TYPES.audio:
 				return html`
-					<audio id="d2l-labs-media-player-audio" ?controls="${NATIVE_CONTROLS}" ?autoplay="${this.autoplay}" ?loop="${this.loop}" preload="metadata" @ended=${this._onEnded} @error=${this._onError} @loadeddata=${this._onLoadedData} @play=${this._onPlay} @pause=${this._onPause} @loadedmetadata=${this._onLoadedMetadata} @timeupdate=${this._onTimeUpdate} @volumechange=${this._onVolumeChange}>
+					<audio
+						id="d2l-labs-media-player-audio"
+						?controls="${NATIVE_CONTROLS}"
+						?autoplay="${this.autoplay}"
+						?loop="${this.loop}"
+						preload="metadata"
+						@ended=${this._onEnded}
+						@error=${this._onError}
+						@loadeddata=${this._onLoadedData}
+						@play=${this._onPlay}
+						@pause=${this._onPause}
+						@loadedmetadata=${this._onLoadedMetadata}
+						@timeupdate=${this._onTimeUpdate}
+						@volumechange=${this._onVolumeChange}
+					>
 						<source src="${this.src}"></source>
 					</audio>
 
@@ -925,7 +987,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		` : null;
 	}
 
-	_getDownloadBottonView() {
+	_getDownloadButtonView() {
 		const theme = this._sourceType === SOURCE_TYPES.video ? 'dark' : undefined;
 		return this.allowDownload ? html`
 			<d2l-menu-item text="${this.localize('download')}" theme="${ifDefined(theme)}" @click=${this._onDownloadClick}></d2l-menu-item>
