@@ -21,10 +21,10 @@
 A LitElement based media player component, designed for similarity across browsers. Capable of playing video and audio content.
 
 > Displaying video
-![Example of video](demo/example-video.png)
+![Example of video](demo/example-video.gif)
 
 > Displaying audio
-![Example of audio](demo/example-audio.png)
+![Example of audio](demo/example-audio.gif)
 
 ## Installation
 
@@ -47,6 +47,7 @@ npm install @brightspace-ui-labs/media-player
 
 | Property | Type | Default | Description |
 |--|--|--|--|
+| allow-download| Boolean | false | If set, will allow the media to be downloaded.
 | autoplay | Boolean | false | If set, will play the media as soon as it has been loaded. |
 | loop | Boolean | false | If set, once the media has finished playing it will replay from the beginning. |
 | poster | String | null | URL of the image to display in place of the media before it has loaded. |
