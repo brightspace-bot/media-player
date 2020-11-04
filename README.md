@@ -26,6 +26,12 @@ A LitElement based media player component, designed for similarity across browse
 > Displaying audio
 ![Example of audio](demo/example-audio.gif)
 
+> Loading media
+![Example of loading](demo/example-loading.gif)
+
+> Media Error
+![Example of error](demo/example-error.png)
+
 ## Installation
 
 To install from NPM:

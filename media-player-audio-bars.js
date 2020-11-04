@@ -56,6 +56,11 @@ const LINEAR_OFFSET = 0.055;
 const UNDER_LINEAR_THRESHOLD_FACTOR = 12.92;
 const UPDATE_PERIOD_MS = 50;
 
+const FONT_SIZE = getComputedStyle(document.documentElement).fontSize;
+const PX_PER_REM = FONT_SIZE.substr(0, FONT_SIZE.indexOf('px'));
+const AUDIO_BAR_WIDTH_PX = AUDIO_BAR_WIDTH_REM * PX_PER_REM;
+const AUDIO_BAR_HORIZONTAL_MARGIN_PX = AUDIO_BAR_HORIZONTAL_MARGIN_REM * PX_PER_REM;
+
 class MediaPlayerAudioBars extends LitElement {
 	static get properties() {
 		return {
@@ -159,12 +164,7 @@ class MediaPlayerAudioBars extends LitElement {
 			for (const entry of entries) {
 				const { width } = entry.contentRect;
 
-				const fontSize = getComputedStyle(document.documentElement).fontSize;
-				const pxPerRem = fontSize.substr(0, fontSize.indexOf('px'));
-
-				const audioBarWidthPx = AUDIO_BAR_WIDTH_REM * pxPerRem;
-				const audioBarHorizontalMarginPx = AUDIO_BAR_HORIZONTAL_MARGIN_REM * pxPerRem;
-				const numAudioBarsThatCanFit = Math.floor(width / (audioBarWidthPx + 2 * audioBarHorizontalMarginPx));
+				const numAudioBarsThatCanFit = Math.floor(width / (AUDIO_BAR_WIDTH_PX + 2 * AUDIO_BAR_HORIZONTAL_MARGIN_PX));
 				const numAudioBarsThatCanFitNextOdd = numAudioBarsThatCanFit % 2 === 1 ? numAudioBarsThatCanFit : numAudioBarsThatCanFit - 1;
 				this._numVisibleAudioBars = Math.min(numAudioBarsThatCanFitNextOdd, AUDIO_BAR_HEIGHTS.length);
 				const numAudioBarColours = Math.floor(this._numVisibleAudioBars * (1 + (AUDIO_BARS_GRADIENTS_OFFSET / AUDIO_BARS_GRADIENTS_DISPLAYED_WEIGHT)));
