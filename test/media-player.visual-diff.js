@@ -10,8 +10,8 @@ describe('d2l-labs-media-player', () => {
 	before(async() => {
 		browser = await puppeteer.launch();
 		page = await visualDiff.createPage(browser);
-		await page.setViewport({width: 800, height: 1600});
-		await page.goto(`${visualDiff.getBaseUrl()}/test/media-player.visual-diff.html`, {waitUntil: ['networkidle0', 'load']});
+		await page.setViewport({ width: 800, height: 1600 });
+		await page.goto(`${visualDiff.getBaseUrl()}/test/media-player.visual-diff.html`, { waitUntil: ['networkidle0', 'load'] });
 		await page.bringToFront();
 	});
 

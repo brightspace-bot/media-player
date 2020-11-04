@@ -128,7 +128,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 				background-color: rgba(0, 0, 0, 0.69);
 			}
 
-			#d2l-labs-media-player-media-controls.hidden {
+			#d2l-labs-media-player-media-controls.d2l-labs-media-player-hidden {
 				bottom: -8rem;
 			}
 
@@ -145,7 +145,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			}
 
 			#d2l-labs-media-player-seek-bar:focus {
-				--d2l-knob-box-shadow: 0px 2px 6px 3px rgba(0, 0, 0, 1);
+				--d2l-knob-box-shadow: 0 2px 6px 3px rgba(0, 0, 0, 1);
 			}
 
 			#d2l-labs-media-player-buttons {
@@ -173,8 +173,8 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			}
 
 			#d2l-labs-media-player-time {
-				margin: 0 0.75rem;
 				line-height: 1rem;
+				margin: 0 0.75rem;
 			}
 
 			#d2l-labs-media-player-time:hover {
@@ -194,7 +194,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 				z-index: 2;
 			}
 
-			#d2l-labs-media-player-volume-level-container.hidden {
+			#d2l-labs-media-player-volume-level-container.d2l-labs-media-player-hidden {
 				left: -8rem;
 			}
 
@@ -224,13 +224,13 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 
 			#d2l-labs-media-player-audio-bars-container {
 				align-items: center;
-				top: calc(50% - 5.125rem);
 				display: flex;
 				flex-wrap: nowrap;
 				height: 8.5rem;
 				justify-content: center;
 				left: calc(2.1rem + 6px);
 				position: absolute;
+				top: calc(50% - 5.125rem);
 				width: calc(100% - 4.2rem - 12px);
 			}
 
@@ -251,18 +251,18 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			}
 
 			#d2l-labs-media-player-track-container > div {
-				display: flex;
-				justify-content: center;
 				align-items: center;
+				display: flex;
 				height: 4.05rem;
+				justify-content: center;
 				min-width: ${MIN_TRACK_WIDTH_PX}px;
 				width: 50%;
 			}
 
 			#d2l-labs-media-player-track-container > div > span {
 				background-color: rgba(0, 0, 0, 0.69);
-				color: white;
 				box-shadow: 0.3rem 0 0 rgba(0, 0, 0, 0.69), -0.3rem 0 0 rgba(0, 0, 0, 0.69);
+				color: white;
 				line-height: 1.35rem;
 				white-space: pre-wrap;
 			}
@@ -270,14 +270,14 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			#d2l-labs-media-player-audio-play-button-container {
 				background-color: white;
 				border-radius: 9px;
-				padding: 0px;
+				padding: 0;
 				position: absolute;
 			}
 
 			#d2l-labs-media-player-audio-play-button {
-				border-radius: 9px;
 				align-items: center;
 				border: none;
+				border-radius: 9px;
 				display: flex;
 				height: 2.75rem;
 				justify-content: center;
@@ -297,8 +297,8 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			}
 
 			#d2l-labs-media-player-settings-menu {
-				left: 0.9rem;
 				bottom: 2.65rem;
+				left: 0.9rem;
 			}
 
 			[dir="rtl"] #d2l-labs-media-player-settings-menu {
@@ -326,34 +326,6 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 				width: 33px;
 			}
 		`;
-	}
-
-	static _formatTime(totalSeconds) {
-		totalSeconds = Math.floor(totalSeconds);
-
-		const str = [];
-
-		const minutes = Math.floor((totalSeconds % 3600) / 60);
-		const hours = Math.floor(totalSeconds / 3600);
-
-		if (hours > 0) {
-			str.push(`${hours}:`);
-
-			if (minutes < 10) {
-				str.push('0');
-			}
-		}
-
-		str.push(`${minutes}:`);
-
-		const seconds = totalSeconds % 60;
-		if (seconds < 10) {
-			str.push('0');
-		}
-
-		str.push(seconds);
-
-		return str.join('');
 	}
 
 	constructor() {
@@ -394,20 +366,29 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		this._media.currentTime = time;
 	}
 
-	get duration() {
-		return this._duration;
-	}
+	firstUpdated(changedProperties) {
+		super.firstUpdated(changedProperties);
 
-	get ended() {
-		return this._media.ended;
-	}
+		if (!this.src) console.warn('d2l-labs-media-player component requires src text');
 
-	get paused() {
-		return this._media.paused;
-	}
+		this._trackMenuValue = this.localize('off');
 
-	get sourceType() {
-		return this._sourceType;
+		this._mediaContainer = this.shadowRoot.getElementById('d2l-labs-media-player-media-container');
+		this._playButton = this.shadowRoot.getElementById('d2l-labs-media-player-play-button');
+		this._seekBar = this.shadowRoot.getElementById('d2l-labs-media-player-seek-bar');
+		this._settingsMenu = this.shadowRoot.getElementById('d2l-labs-media-player-settings-menu');
+		this._speedLevelBackground = this.shadowRoot.getElementById('d2l-labs-media-player-speed-level-background');
+		this._volumeLevel = this.shadowRoot.getElementById('d2l-labs-media-player-volume-level');
+
+		this._startUpdatingCurrentTime();
+
+		new ResizeObserver((entries) => {
+			for (const entry of entries) {
+				const { height, width } = entry.contentRect;
+				const multiplier = Math.sqrt(Math.max(1, Math.min(height, width) / MIN_TRACK_WIDTH_PX));
+				this._trackFontSizeRem = multiplier;
+			}
+		}).observe(this._mediaContainer);
 	}
 
 	render() {
@@ -423,9 +404,9 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		const trackContainerStyle = { bottom: this._hidingCustomControls() ? '3px' : 'calc(1.8rem + 20px)', fontSize: `${this._trackFontSizeRem}rem`, lineHeight: `${this._trackFontSizeRem * 1.2}rem` };
 
 		const mediaContainerClass = { 'd2l-labs-media-player-type-is-audio': this._sourceType === SOURCE_TYPES.audio, 'd2l-labs-media-player-type-is-video': this._sourceType === SOURCE_TYPES.video, 'd2l-labs-media-player-type-is-unknown': this._sourceType === SOURCE_TYPES.unknown };
-		const mediaControlsClass = { hidden: this._hidingCustomControls() };
+		const mediaControlsClass = { 'd2l-labs-media-player-hidden': this._hidingCustomControls() };
 		const theme = this._sourceType === SOURCE_TYPES.video ? 'dark' : undefined;
-		const volumeLevelContainerClass = { hidden: !this._usingVolumeContainer || this._hidingCustomControls() };
+		const volumeLevelContainerClass = { 'd2l-labs-media-player-hidden': !this._usingVolumeContainer || this._hidingCustomControls() };
 
 		const fullscreenButton = this._sourceType === SOURCE_TYPES.video ? html`<d2l-button-icon
 			class="d2l-dropdown-opener"
@@ -534,31 +515,6 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		`;
 	}
 
-	firstUpdated(changedProperties) {
-		super.firstUpdated(changedProperties);
-
-		if (!this.src) console.warn('d2l-labs-media-player component requires src text');
-
-		this._trackMenuValue = this.localize('off');
-
-		this._mediaContainer = this.shadowRoot.getElementById('d2l-labs-media-player-media-container');
-		this._playButton = this.shadowRoot.getElementById('d2l-labs-media-player-play-button');
-		this._seekBar = this.shadowRoot.getElementById('d2l-labs-media-player-seek-bar');
-		this._settingsMenu = this.shadowRoot.getElementById('d2l-labs-media-player-settings-menu');
-		this._speedLevelBackground = this.shadowRoot.getElementById('d2l-labs-media-player-speed-level-background');
-		this._volumeLevel = this.shadowRoot.getElementById('d2l-labs-media-player-volume-level');
-
-		this._startUpdatingCurrentTime();
-
-		new ResizeObserver((entries) => {
-			for (const entry of entries) {
-				const { height, width } = entry.contentRect;
-				const multiplier = Math.sqrt(Math.max(1, Math.min(height, width) / MIN_TRACK_WIDTH_PX));
-				this._trackFontSizeRem = multiplier;
-			}
-		}).observe(this._mediaContainer);
-	}
-
 	updated(changedProperties) {
 		super.updated(changedProperties);
 
@@ -577,18 +533,12 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		}
 	}
 
-	play() {
-		if (this._media.paused) this._togglePlay();
+	get duration() {
+		return this._duration;
 	}
 
-	pause() {
-		if (!this._media.paused) this._togglePlay();
-	}
-
-	requestFullscreen() {
-		if (fullscreenApi.isFullscreen) return;
-
-		this._toggleFullscreen();
+	get ended() {
+		return this._media.ended;
 	}
 
 	exitFullscreen() {
@@ -597,8 +547,245 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		this._toggleFullscreen();
 	}
 
-	_onVideoContainerMouseMove() {
+	pause() {
+		if (!this._media.paused) this._togglePlay();
+	}
+
+	get paused() {
+		return this._media.paused;
+	}
+
+	play() {
+		if (this._media.paused) this._togglePlay();
+	}
+
+	requestFullscreen() {
+		if (fullscreenApi.isFullscreen) return;
+
+		this._toggleFullscreen();
+	}
+
+	get sourceType() {
+		return this._sourceType;
+	}
+
+	_determineSourceType() {
+		this._loading = true;
+		this._message = {
+			text: null,
+			type: null
+		};
+		this._sourceType = SOURCE_TYPES.unknown;
+		const video = document.createElement('video');
+		video.src = this.src;
+
+		video.addEventListener('canplay', () => {
+			this._sourceType = video.videoHeight === 0 ? SOURCE_TYPES.audio : SOURCE_TYPES.video;
+		});
+
+		video.addEventListener('error', this._onError.bind(this));
+	}
+
+	static _formatTime(totalSeconds) {
+		totalSeconds = Math.floor(totalSeconds);
+
+		const str = [];
+
+		const minutes = Math.floor((totalSeconds % 3600) / 60);
+		const hours = Math.floor(totalSeconds / 3600);
+
+		if (hours > 0) {
+			str.push(`${hours}:`);
+
+			if (minutes < 10) {
+				str.push('0');
+			}
+		}
+
+		str.push(`${minutes}:`);
+
+		const seconds = totalSeconds % 60;
+		if (seconds < 10) {
+			str.push('0');
+		}
+
+		str.push(seconds);
+
+		return str.join('');
+	}
+
+	_getDownloadButtonView() {
+		if (!this.allowDownload) return null;
+
+		const url = new Url(this.src);
+		const searchParams = url.searchParams;
+		searchParams.append('attachment', 'true');
+		const linkHref = url.toString();
+
+		return html`
+			<d2l-menu-item-link href="${linkHref}" target="_blank" text="${this.localize('download')}" download></d2l-menu-item-link>
+		`;
+	}
+
+	_getErrorAlertView() {
+		return this._message.type === MESSAGE_TYPES.error ? html`
+			<div class="d2l-labs-media-player-full-area-centred">
+				<d2l-alert button-text="${this.localize('retry')}" type="critical" @d2l-alert-button-press=${this._onAlertButtonPress}>
+					<div id="d2l-labs-media-player-alert-inner">
+						<img src="../assets/img/media-play-broken.svg">
+
+						<span style="">
+							${this._message.text}
+						</span>
+					</div>
+				</d2l-alert>
+			</div>
+		` : null;
+	}
+
+	_getLoadingSpinnerView() {
+		return this._loading ? html`
+			<div class="d2l-labs-media-player-full-area-centred">
+				<d2l-loading-spinner size="100"></d2l-loading-spinner>
+			</div>
+		` : null;
+	}
+
+	_getMediaAreaView() {
+		const playIcon = `tier3:${this._playing ? 'pause' : 'play'}`;
+		const playTooltip = `${this._playing ? this.localize('pause') : this.localize('play')} (${KEY_BINDINGS.play})`;
+
+		switch (this._sourceType) {
+			case SOURCE_TYPES.video:
+				return html`
+					<video
+						id="d2l-labs-media-player-video"
+						?controls="${NATIVE_CONTROLS}"
+						?autoplay="${this.autoplay}"
+						?loop="${this.loop}"
+						poster="${ifDefined(this.poster)}"
+						preload="metadata"
+						@click=${this._onVideoClick}
+						@ended=${this._onEnded}
+						@error=${this._onError}
+						@loadeddata=${this._onLoadedData}
+						@play=${this._onPlay}
+						@pause=${this._onPause}
+						@loadedmetadata=${this._onLoadedMetadata}
+						@timeupdate=${this._onTimeUpdate}
+						@volumechange=${this._onVolumeChange}
+					>
+						<source src="${this.src}">
+					</video>
+				`;
+			case SOURCE_TYPES.audio:
+				return html`
+					<audio
+						id="d2l-labs-media-player-audio"
+						?controls="${NATIVE_CONTROLS}"
+						?autoplay="${this.autoplay}"
+						?loop="${this.loop}"
+						preload="metadata"
+						@ended=${this._onEnded}
+						@error=${this._onError}
+						@loadeddata=${this._onLoadedData}
+						@play=${this._onPlay}
+						@pause=${this._onPause}
+						@loadedmetadata=${this._onLoadedMetadata}
+						@timeupdate=${this._onTimeUpdate}
+						@volumechange=${this._onVolumeChange}
+					>
+						<source src="${this.src}"></source>
+					</audio>
+
+					<div id="d2l-labs-media-player-audio-bars-container">
+						<div id="d2l-labs-media-player-audio-play-button-container">
+							<d2l-button id="d2l-labs-media-player-audio-play-button" title="${playTooltip}" aria-label="${playTooltip}" @click=${this._togglePlay}>
+								<d2l-icon icon="${playIcon}"></d2l-icon>
+							</d2l-button>
+						</div>
+
+						<d2l-labs-media-player-audio-bars ?playing="${this._playing}"></d2l-labs-media-player-audio-bars>
+					</div>
+				`;
+			default:
+				return null;
+		}
+	}
+
+	_getTracksMenuView() {
+		const theme = this._sourceType === SOURCE_TYPES.video ? 'dark' : undefined;
+		return this._tracks.length > 0 ? html`
+			<d2l-menu-item text="${this.localize('subtitles')}">
+				<div slot="supporting">${this._trackMenuValue}</div>
+				<d2l-menu @d2l-menu-item-change=${this._onTracksMenuItemChange} theme="${ifDefined(theme)}">
+					<d2l-menu-item-radio text="${this.localize('off')}" value="${this.localize('off')}" selected></d2l-menu-item-radio>
+					${this._tracks.map(track => html`
+						<d2l-menu-item-radio text="${`${track.label}${track.kind === TRACK_KINDS.captions ? ' (CC)' : ''}`}" value="${track.srclang}"></d2l-menu-item-radio>
+					`)}
+				</d2l-menu>
+			</d2l-menu-item>
+		` : null;
+	}
+
+	_hidingCustomControls() {
+		const settingsMenuOpened = this._settingsMenu && this._settingsMenu.opened;
+		return NATIVE_CONTROLS || (this._playing && !this._recentlyShowedCustomControls && !this._hoveringMediaControls && !settingsMenuOpened && !this._usingVolumeContainer && this._sourceType === SOURCE_TYPES.video) || this._sourceType === SOURCE_TYPES.unknown;
+	}
+
+	_listenForKeyboard(e) {
 		this._showControls(true);
+		switch (e.key) {
+			case KEY_BINDINGS.play:
+				this._togglePlay();
+				break;
+			case KEY_BINDINGS.mute:
+				this._toggleMute();
+				break;
+			case KEY_BINDINGS.fullscreen:
+				this._toggleFullscreen();
+				break;
+		}
+	}
+
+	_onAlertButtonPress() {
+		const src = this.src;
+
+		this.src = null;
+
+		setTimeout(() => {
+			this.src = src;
+		}, 0);
+	}
+
+	_onCueChange() {
+		for (let i = 0; i < this._media.textTracks.length; i++) {
+			if (this._media.textTracks[i].mode === 'hidden') {
+				if (this._media.textTracks[i].activeCues.length > 0) {
+					this._trackText = this._media.textTracks[i].activeCues[0].text.replace('<br />', '\n');
+				} else this._trackText = null;
+			}
+		}
+	}
+
+	_onDragEndSeek() {
+		// _onDragEndSeek() is called once before firstUpdated()
+		if (this._seekBar) {
+			this._updateCurrentTimeFromSeekbarProgress();
+
+			if (this._pausedForSeekDrag) this._media.play();
+			this._pausedForSeekDrag = false;
+			this._dragging = false;
+		}
+	}
+
+	_onDragStartSeek() {
+		if (this._playing) {
+			this._media.pause();
+			this._pausedForSeekDrag = true;
+		}
+
+		this._dragging = true;
 	}
 
 	_onEnded() {
@@ -622,38 +809,19 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		this.dispatchEvent(new CustomEvent('loadedmetadata'));
 	}
 
-	_onPlay() {
-		this._playing = true;
-		this.dispatchEvent(new CustomEvent('play'));
-	}
-
 	_onPause() {
 		this._playing = false;
 		this.dispatchEvent(new CustomEvent('pause'));
 	}
 
-	_onTimeUpdate() {
-		this.dispatchEvent(new CustomEvent('timeupdate'));
+	_onPlay() {
+		this._playing = true;
+		this.dispatchEvent(new CustomEvent('play'));
 	}
 
-	_onDragStartSeek() {
-		if (this._playing) {
-			this._media.pause();
-			this._pausedForSeekDrag = true;
-		}
-
-		this._dragging = true;
-	}
-
-	_onDragEndSeek() {
-		// _onDragEndSeek() is called once before firstUpdated()
-		if (this._seekBar) {
-			this._updateCurrentTimeFromSeekbarProgress();
-
-			if (this._pausedForSeekDrag) this._media.play();
-			this._pausedForSeekDrag = false;
-			this._dragging = false;
-		}
+	_onPlaybackSpeedsMenuItemChange(e) {
+		this._media.playbackRate = e.target.value;
+		this._playbackSpeedMenuValue = e.target.value;
 	}
 
 	_onPositionChangeSeek() {
@@ -661,37 +829,8 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		this._showControls(true);
 	}
 
-	_updateCurrentTimeFromSeekbarProgress() {
-		this.currentTime = this._seekBar.immediateValue * this._duration / 100;
-	}
-
 	_onPositionChangeVolume() {
 		this._media.volume = this._volumeLevel.immediateValue / 100;
-	}
-
-	_onVolumeChange() {
-		this._volume = this._media.volume;
-
-		if (this._volume > 0) {
-			this._muted = false;
-		}
-	}
-
-	_onVideoClick() {
-		this._togglePlay();
-		this._showControls(true);
-
-		if (this._videoClicked) {
-			this._toggleFullscreen();
-		} else {
-			setTimeout(() => {
-				if (this._videoClicked) {
-					this._videoClicked = false;
-				}
-			}, TIMEOUT_FOR_DOUBLE_CLICK_MS);
-		}
-
-		this._videoClicked = !this._videoClicked;
 	}
 
 	async _onSlotChange(e) {
@@ -786,9 +925,12 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		}, 0);
 	}
 
-	_onPlaybackSpeedsMenuItemChange(e) {
-		this._media.playbackRate = e.target.value;
-		this._playbackSpeedMenuValue = e.target.value;
+	_onTimeUpdate() {
+		this.dispatchEvent(new CustomEvent('timeupdate'));
+	}
+
+	_onTrackContainerClick() {
+		if (this._sourceType === SOURCE_TYPES.video) this._onVideoClick();
 	}
 
 	_onTracksMenuItemChange(e) {
@@ -806,251 +948,33 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 
 	}
 
-	_onCueChange() {
-		for (let i = 0; i < this._media.textTracks.length; i++) {
-			if (this._media.textTracks[i].mode === 'hidden') {
-				if (this._media.textTracks[i].activeCues.length > 0) {
-					this._trackText = this._media.textTracks[i].activeCues[0].text.replace('<br />', '\n');
-				} else this._trackText = null;
-			}
-		}
-	}
-
-	_onTrackContainerClick() {
-		if (this._sourceType === SOURCE_TYPES.video) this._onVideoClick();
-	}
-
-	_onAlertButtonPress() {
-		const src = this.src;
-
-		this.src = null;
-
-		setTimeout(() => {
-			this.src = src;
-		}, 0);
-	}
-
-	_togglePlay() {
-		if (this._media.paused) {
-			this._media.play();
-		} else {
-			this._media.pause();
-		}
-	}
-
-	_toggleMute() {
-		if (this._muted) {
-			this._media.volume = this.preMuteVolume;
-		} else {
-			this.preMuteVolume = this._media.volume;
-			this._media.volume = 0;
-		}
-
-		this._muted = !this._muted;
-	}
-
-	_toggleFullscreen() {
-		if (!FULLSCREEN_ENABLED) return;
-
-		if (this._sourceType !== SOURCE_TYPES.video) return;
-
-		if (fullscreenApi.isFullscreen) {
-			fullscreenApi.exit();
-		} else {
-			fullscreenApi.request(this._mediaContainer);
-		}
-	}
-
-	_startUpdatingCurrentTime() {
-		setInterval(() => {
-			if (this._media && !this._dragging) {
-				this._currentTime = this._media.currentTime;
-			}
-		}, SEEK_BAR_UPDATE_PERIOD_MS);
-	}
-
-	_listenForKeyboard(e) {
+	_onVideoClick() {
+		this._togglePlay();
 		this._showControls(true);
-		switch (e.key) {
-			case KEY_BINDINGS.play:
-				this._togglePlay();
-				break;
-			case KEY_BINDINGS.mute:
-				this._toggleMute();
-				break;
-			case KEY_BINDINGS.fullscreen:
-				this._toggleFullscreen();
-				break;
+
+		if (this._videoClicked) {
+			this._toggleFullscreen();
+		} else {
+			setTimeout(() => {
+				if (this._videoClicked) {
+					this._videoClicked = false;
+				}
+			}, TIMEOUT_FOR_DOUBLE_CLICK_MS);
 		}
+
+		this._videoClicked = !this._videoClicked;
 	}
 
-	_startHoveringControls() {
-		this._hoveringMediaControls = true;
-		this._showControls(false);
-	}
-
-	_stopHoveringControls() {
-		this._hoveringMediaControls = false;
+	_onVideoContainerMouseMove() {
 		this._showControls(true);
 	}
 
-	_showControls(temporarily) {
-		this._recentlyShowedCustomControls = true;
-		clearTimeout(this._showControlsTimeout);
+	_onVolumeChange() {
+		this._volume = this._media.volume;
 
-		if (temporarily) {
-			this._showControlsTimeout = setTimeout(() => {
-				this._recentlyShowedCustomControls = false;
-			}, HIDE_DELAY_MS);
+		if (this._volume > 0) {
+			this._muted = false;
 		}
-	}
-
-	_startUsingVolumeContainer() {
-		setTimeout(() => {
-			this._usingVolumeContainer = true;
-		}, 0);
-	}
-
-	_stopUsingVolumeContainer() {
-		setTimeout(() => {
-			this._usingVolumeContainer = false;
-		}, 0);
-	}
-
-	_hidingCustomControls() {
-		const settingsMenuOpened = this._settingsMenu && this._settingsMenu.opened;
-		return NATIVE_CONTROLS || (this._playing && !this._recentlyShowedCustomControls && !this._hoveringMediaControls && !settingsMenuOpened && !this._usingVolumeContainer && this._sourceType === SOURCE_TYPES.video) || this._sourceType === SOURCE_TYPES.unknown;
-	}
-
-	_determineSourceType() {
-		this._loading = true;
-		this._message = {
-			text: null,
-			type: null
-		};
-		this._sourceType = SOURCE_TYPES.unknown;
-		const video = document.createElement('video');
-		video.src = this.src;
-
-		video.addEventListener('canplay', () => {
-			this._sourceType = video.videoHeight === 0 ? SOURCE_TYPES.audio : SOURCE_TYPES.video;
-		});
-
-		video.addEventListener('error', this._onError.bind(this));
-	}
-
-	_getErrorAlertView() {
-		return this._message.type === MESSAGE_TYPES.error ? html`
-			<div class="d2l-labs-media-player-full-area-centred">
-				<d2l-alert button-text="${this.localize('retry')}" type="critical" @d2l-alert-button-press=${this._onAlertButtonPress}>
-					<div id="d2l-labs-media-player-alert-inner">
-						<img src="../assets/img/media-play-broken.svg">
-
-						<span style="">
-							${this._message.text}
-						</span>
-					</div>
-				</d2l-alert>
-			</div>
-		` : null;
-	}
-
-	_getMediaAreaView() {
-		const playIcon = `tier3:${this._playing ? 'pause' : 'play'}`;
-		const playTooltip = `${this._playing ? this.localize('pause') : this.localize('play')} (${KEY_BINDINGS.play})`;
-
-		switch (this._sourceType) {
-			case SOURCE_TYPES.video:
-				return html`
-					<video
-						id="d2l-labs-media-player-video"
-						?controls="${NATIVE_CONTROLS}"
-						?autoplay="${this.autoplay}"
-						?loop="${this.loop}"
-						poster="${ifDefined(this.poster)}"
-						preload="metadata"
-						@click=${this._onVideoClick}
-						@ended=${this._onEnded}
-						@error=${this._onError}
-						@loadeddata=${this._onLoadedData}
-						@play=${this._onPlay}
-						@pause=${this._onPause}
-						@loadedmetadata=${this._onLoadedMetadata}
-						@timeupdate=${this._onTimeUpdate}
-						@volumechange=${this._onVolumeChange}
-					>
-						<source src="${this.src}">
-					</video>
-				`;
-			case SOURCE_TYPES.audio:
-				return html`
-					<audio
-						id="d2l-labs-media-player-audio"
-						?controls="${NATIVE_CONTROLS}"
-						?autoplay="${this.autoplay}"
-						?loop="${this.loop}"
-						preload="metadata"
-						@ended=${this._onEnded}
-						@error=${this._onError}
-						@loadeddata=${this._onLoadedData}
-						@play=${this._onPlay}
-						@pause=${this._onPause}
-						@loadedmetadata=${this._onLoadedMetadata}
-						@timeupdate=${this._onTimeUpdate}
-						@volumechange=${this._onVolumeChange}
-					>
-						<source src="${this.src}"></source>
-					</audio>
-
-					<div id="d2l-labs-media-player-audio-bars-container">
-						<div id="d2l-labs-media-player-audio-play-button-container">
-							<d2l-button id="d2l-labs-media-player-audio-play-button" title="${playTooltip}" aria-label="${playTooltip}" @click=${this._togglePlay}>
-								<d2l-icon icon="${playIcon}"></d2l-icon>
-							</d2l-button>
-						</div>
-
-						<d2l-labs-media-player-audio-bars ?playing="${this._playing}"></d2l-labs-media-player-audio-bars>
-					</div>
-				`;
-			default:
-				return null;
-		}
-	}
-
-	_getTracksMenuView() {
-		const theme = this._sourceType === SOURCE_TYPES.video ? 'dark' : undefined;
-		return this._tracks.length > 0 ? html`
-			<d2l-menu-item text="${this.localize('subtitles')}">
-				<div slot="supporting">${this._trackMenuValue}</div>
-				<d2l-menu @d2l-menu-item-change=${this._onTracksMenuItemChange} theme="${ifDefined(theme)}">
-					<d2l-menu-item-radio text="${this.localize('off')}" value="${this.localize('off')}" selected></d2l-menu-item-radio>
-					${this._tracks.map(track => html`
-						<d2l-menu-item-radio text="${`${track.label}${track.kind === TRACK_KINDS.captions ? ' (CC)' : ''}`}" value="${track.srclang}"></d2l-menu-item-radio>
-					`)}
-				</d2l-menu>
-			</d2l-menu-item>
-		` : null;
-	}
-
-	_getDownloadButtonView() {
-		if (!this.allowDownload) return null;
-
-		const url = new Url(this.src);
-		const searchParams = url.searchParams;
-		searchParams.append('attachment', 'true');
-		const linkHref = url.toString();
-
-		return html`
-			<d2l-menu-item-link href="${linkHref}" target="_blank" text="${this.localize('download')}" download></d2l-menu-item-link>
-		`;
-	}
-
-	_getLoadingSpinnerView() {
-		return this._loading ? html`
-			<div class="d2l-labs-media-player-full-area-centred">
-				<d2l-loading-spinner size="100"></d2l-loading-spinner>
-			</div>
-		` : null;
 	}
 
 	_setLoadErrorMessage() {
@@ -1065,6 +989,82 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			text: this.localize('loadSuccessMessage'),
 			type: MESSAGE_TYPES.success
 		};
+	}
+
+	_showControls(temporarily) {
+		this._recentlyShowedCustomControls = true;
+		clearTimeout(this._showControlsTimeout);
+
+		if (temporarily) {
+			this._showControlsTimeout = setTimeout(() => {
+				this._recentlyShowedCustomControls = false;
+			}, HIDE_DELAY_MS);
+		}
+	}
+
+	_startHoveringControls() {
+		this._hoveringMediaControls = true;
+		this._showControls(false);
+	}
+
+	_startUpdatingCurrentTime() {
+		setInterval(() => {
+			if (this._media && !this._dragging) {
+				this._currentTime = this._media.currentTime;
+			}
+		}, SEEK_BAR_UPDATE_PERIOD_MS);
+	}
+
+	_startUsingVolumeContainer() {
+		setTimeout(() => {
+			this._usingVolumeContainer = true;
+		}, 0);
+	}
+
+	_stopHoveringControls() {
+		this._hoveringMediaControls = false;
+		this._showControls(true);
+	}
+
+	_stopUsingVolumeContainer() {
+		setTimeout(() => {
+			this._usingVolumeContainer = false;
+		}, 0);
+	}
+
+	_toggleFullscreen() {
+		if (!FULLSCREEN_ENABLED) return;
+
+		if (this._sourceType !== SOURCE_TYPES.video) return;
+
+		if (fullscreenApi.isFullscreen) {
+			fullscreenApi.exit();
+		} else {
+			fullscreenApi.request(this._mediaContainer);
+		}
+	}
+
+	_toggleMute() {
+		if (this._muted) {
+			this._media.volume = this.preMuteVolume;
+		} else {
+			this.preMuteVolume = this._media.volume;
+			this._media.volume = 0;
+		}
+
+		this._muted = !this._muted;
+	}
+
+	_togglePlay() {
+		if (this._media.paused) {
+			this._media.play();
+		} else {
+			this._media.pause();
+		}
+	}
+
+	_updateCurrentTimeFromSeekbarProgress() {
+		this.currentTime = this._seekBar.immediateValue * this._duration / 100;
 	}
 }
 

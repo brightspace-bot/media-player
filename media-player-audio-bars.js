@@ -77,10 +77,10 @@ class MediaPlayerAudioBars extends LitElement {
 
 			#d2l-labs-media-player-audio-bars-row {
 				align-items: center;
-				justify-content: center;
 				display: flex;
 				flex-direction: row;
 				height: 100%;
+				justify-content: center;
 			}
 
 			#d2l-labs-media-player-audio-bar-container {
@@ -98,42 +98,6 @@ class MediaPlayerAudioBars extends LitElement {
 		`;
 	}
 
-	/**
-	 * Converts a [0..255] SRGB value to a [0..1] linear value.
-	 * @param {Number} rgb SRGB representation of the colour.
-	 * @returns {Number} Linear value of the colour.
-	 */
-	static _fromSRGB(rgb) {
-		rgb /= FULL_BYTE;
-
-		return rgb <= 0.04045 ? rgb / UNDER_LINEAR_THRESHOLD_FACTOR : Math.pow((rgb + LINEAR_OFFSET) / (1 + LINEAR_OFFSET), GAMMA_ADJUSTMENT_EXPONENT);
-	}
-
-	static _getGradientFromFraction(fraction) {
-		for (let i = 0; i < AUDIO_BARS_GRADIENTS.length; i++) {
-			if (fraction < AUDIO_BARS_GRADIENTS[i].fractionPassedInclusive) return AUDIO_BARS_GRADIENTS[i];
-		}
-	}
-
-	/**
-	 * Converts a [0..1] linear value to a [0..255] SRGB value.
-	 * @param {Number} rgb Linear representation of the colour.
-	 * @returns {Number} SRGB value of the colour.
-	 */
-	static _toSRGB(rgb) {
-		if (rgb <= 0.0031308) {
-			rgb *= UNDER_LINEAR_THRESHOLD_FACTOR;
-		} else {
-			rgb = ((1 + LINEAR_OFFSET) * (Math.pow(rgb, 1 / GAMMA_ADJUSTMENT_EXPONENT))) - LINEAR_OFFSET;
-		}
-
-		return (FULL_BYTE + 1) * rgb;
-	}
-
-	static _weightedAverage(a, b, weightOfB) {
-		return a + (b - a) * weightOfB;
-	}
-
 	constructor() {
 		super();
 
@@ -142,19 +106,6 @@ class MediaPlayerAudioBars extends LitElement {
 		this._gradientAudioBars = [];
 		this._numVisibleAudioBars = 0;
 		this._visibleAudioBars = [];
-	}
-
-	render() {
-		return html`
-			<div id="d2l-labs-media-player-audio-bars-row">
-				${this._visibleAudioBars.map(audioBar => html`
-					<div id="d2l-labs-media-player-audio-bar-container">
-						<div style="flex: auto;"></div>
-						<div class="d2l-labs-media-player-audio-bar" style=${styleMap({ backgroundColor: `rgba(${audioBar.red}, ${audioBar.green}, ${audioBar.blue}, 1)`, height: `${audioBar.height}%` })}></div>
-					</div>
-				`)}
-			</div>
-		`;
 	}
 
 	firstUpdated(changedProperties) {
@@ -199,18 +150,17 @@ class MediaPlayerAudioBars extends LitElement {
 		}).observe(this.shadowRoot.getElementById('d2l-labs-media-player-audio-bars-row'));
 	}
 
-	_startChangingAudioBars() {
-		this._visibleAudioBarsOffset = this._audioBarColours.length - this._visibleAudioBars.length + 1;
-
-		this._changeColoursOfAudioBars();
-
-		clearInterval(this._changingAudioBarsInterval);
-
-		this._changingAudioBarsInterval = setInterval(() => {
-			if (!this.playing) return;
-
-			this._changeColoursOfAudioBars();
-		}, UPDATE_PERIOD_MS);
+	render() {
+		return html`
+			<div id="d2l-labs-media-player-audio-bars-row">
+				${this._visibleAudioBars.map(audioBar => html`
+					<div id="d2l-labs-media-player-audio-bar-container">
+						<div style="flex: auto;"></div>
+						<div class="d2l-labs-media-player-audio-bar" style=${styleMap({ backgroundColor: `rgba(${audioBar.red}, ${audioBar.green}, ${audioBar.blue}, 1)`, height: `${audioBar.height}%` })}></div>
+					</div>
+				`)}
+			</div>
+		`;
 	}
 
 	_changeColoursOfAudioBars() {
@@ -230,6 +180,23 @@ class MediaPlayerAudioBars extends LitElement {
 		this._visibleAudioBars = newVisibleAudioBars;
 
 		this._visibleAudioBarsOffset = this._visibleAudioBarsOffset === 0 ? this._audioBarColours.length - 1 : this._visibleAudioBarsOffset - 1;
+	}
+
+	/**
+	 * Converts a [0..255] SRGB value to a [0..1] linear value.
+	 * @param {Number} rgb SRGB representation of the colour.
+	 * @returns {Number} Linear value of the colour.
+	 */
+	static _fromSRGB(rgb) {
+		rgb /= FULL_BYTE;
+
+		return rgb <= 0.04045 ? rgb / UNDER_LINEAR_THRESHOLD_FACTOR : Math.pow((rgb + LINEAR_OFFSET) / (1 + LINEAR_OFFSET), GAMMA_ADJUSTMENT_EXPONENT);
+	}
+
+	static _getGradientFromFraction(fraction) {
+		for (let i = 0; i < AUDIO_BARS_GRADIENTS.length; i++) {
+			if (fraction < AUDIO_BARS_GRADIENTS[i].fractionPassedInclusive) return AUDIO_BARS_GRADIENTS[i];
+		}
 	}
 
 	_getRgbOfAudioBar(i) {
@@ -269,6 +236,40 @@ class MediaPlayerAudioBars extends LitElement {
 			blue: MediaPlayerAudioBars._toSRGB(blueWithoutBrightness * brightness / sumWithoutBrightness)
 		};
 	}
+
+	_startChangingAudioBars() {
+		this._visibleAudioBarsOffset = this._audioBarColours.length - this._visibleAudioBars.length + 1;
+
+		this._changeColoursOfAudioBars();
+
+		clearInterval(this._changingAudioBarsInterval);
+
+		this._changingAudioBarsInterval = setInterval(() => {
+			if (!this.playing) return;
+
+			this._changeColoursOfAudioBars();
+		}, UPDATE_PERIOD_MS);
+	}
+
+	/**
+	 * Converts a [0..1] linear value to a [0..255] SRGB value.
+	 * @param {Number} rgb Linear representation of the colour.
+	 * @returns {Number} SRGB value of the colour.
+	 */
+	static _toSRGB(rgb) {
+		if (rgb <= 0.0031308) {
+			rgb *= UNDER_LINEAR_THRESHOLD_FACTOR;
+		} else {
+			rgb = ((1 + LINEAR_OFFSET) * (Math.pow(rgb, 1 / GAMMA_ADJUSTMENT_EXPONENT))) - LINEAR_OFFSET;
+		}
+
+		return (FULL_BYTE + 1) * rgb;
+	}
+
+	static _weightedAverage(a, b, weightOfB) {
+		return a + (b - a) * weightOfB;
+	}
+
 }
 
 customElements.define('d2l-labs-media-player-audio-bars', MediaPlayerAudioBars);
