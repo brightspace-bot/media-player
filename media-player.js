@@ -632,9 +632,9 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			<div class="d2l-labs-media-player-full-area-centred">
 				<d2l-alert button-text="${this.localize('retry')}" type="critical" @d2l-alert-button-press=${this._onAlertButtonPress}>
 					<div id="d2l-labs-media-player-alert-inner">
-						<img src="../assets/img/media-play-broken.svg">
+						<img src="${`${import.meta.url.substring(0, import.meta.url.lastIndexOf('/'))}/assets/img/media-play-broken.svg`}">
 
-						<span style="">
+						<span>
 							${this._message.text}
 						</span>
 					</div>
