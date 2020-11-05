@@ -10,7 +10,6 @@
     "media-player-menu-item.js",
     "media-player.js",
     "media-player-audio-bars.js",
-    "/assets",
     "/lang",
     "/src"
   ],
