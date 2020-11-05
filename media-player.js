@@ -321,8 +321,8 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			}
 
 			#d2l-labs-media-player-alert-inner > svg {
-				margin-right: 0.5rem;
 				flex-shrink: 0;
+				margin-right: 0.5rem;
 			}
 		`;
 	}
