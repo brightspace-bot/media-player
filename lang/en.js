@@ -1,4 +1,5 @@
 export default {
+	captions: 'Captions',
 	default: 'Default',
 	download: 'Download',
 	exitFullscreen: 'Exit fullscreen',
@@ -15,7 +16,6 @@ export default {
 	settings: 'settings',
 	seekSlider: 'seek slider',
 	speed: 'speed',
-	subtitles: 'Subtitles',
 	unmute: 'Unmute',
 	volumeSlider: 'volume slider'
 };
