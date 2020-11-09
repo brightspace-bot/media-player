@@ -613,10 +613,17 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		return str.join('');
 	}
 
+	_getAbsoluteUrl(url) {
+		const a = document.createElement('a');
+		a.setAttribute('href', url);
+
+		return a.href;
+	}
+
 	_getDownloadButtonView() {
 		if (!this.allowDownload) return null;
 
-		const url = new Url(this.src);
+		const url = new Url(this._getAbsoluteUrl(this.src));
 		const searchParams = url.searchParams;
 		searchParams.append('attachment', 'true');
 		const linkHref = url.toString();
