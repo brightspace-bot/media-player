@@ -1,8 +1,9 @@
 export default {
 	default: 'Default',
+	download: 'Download',
 	exitFullscreen: 'Exit fullscreen',
 	fullscreen: 'Fullscreen',
-	loadErrorMessage: 'An error occurred while trying to load the media',
+	loadErrorMessage: 'Oops, there was a problem loading this media file',
 	loadSuccessMessage: 'The media has loaded successfully',
 	menu: 'menu',
 	mute: 'Mute',
@@ -10,6 +11,7 @@ export default {
 	pause: 'Pause',
 	play: 'Play',
 	playbackSpeed: 'Playback speed',
+	retry: 'Retry',
 	settings: 'settings',
 	seekSlider: 'seek slider',
 	speed: 'speed',

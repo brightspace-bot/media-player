@@ -67,23 +67,8 @@ class FullscreenApi {
 		};
 	}
 
-	request(element) {
-		return new Promise((resolve, reject) => {
-			const onFullScreenEntered = () => {
-				this.off('change', onFullScreenEntered);
-				resolve();
-			};
-
-			this.on('change', onFullScreenEntered);
-
-			element = element || document.documentElement;
-
-			const returnPromise = element[this.namesMap.requestFullscreen]();
-
-			if (returnPromise instanceof Promise) {
-				returnPromise.then(onFullScreenEntered).catch(reject);
-			}
-		});
+	get element() {
+		return document[this.namesMap.fullscreenElement];
 	}
 
 	exit() {
@@ -107,8 +92,26 @@ class FullscreenApi {
 		});
 	}
 
-	toggle(element) {
-		return this.isFullscreen ? this.exit() : this.request(element);
+	get isEnabled() {
+		return Boolean(document[this.namesMap.fullscreenEnabled]);
+	}
+
+	get isFullscreen() {
+		return Boolean(document[this.namesMap.fullscreenElement]);
+	}
+
+	off(event, callback) {
+		const eventName = this.eventNamesMap[event];
+		if (eventName) {
+			document.removeEventListener(eventName, callback, false);
+		}
+	}
+
+	on(event, callback) {
+		const eventName = this.eventNamesMap[event];
+		if (eventName) {
+			document.addEventListener(eventName, callback, false);
+		}
 	}
 
 	onchange(callback) {
@@ -119,30 +122,27 @@ class FullscreenApi {
 		this.on('error', callback);
 	}
 
-	on(event, callback) {
-		const eventName = this.eventNamesMap[event];
-		if (eventName) {
-			document.addEventListener(eventName, callback, false);
-		}
+	request(element) {
+		return new Promise((resolve, reject) => {
+			const onFullScreenEntered = () => {
+				this.off('change', onFullScreenEntered);
+				resolve();
+			};
+
+			this.on('change', onFullScreenEntered);
+
+			element = element || document.documentElement;
+
+			const returnPromise = element[this.namesMap.requestFullscreen]();
+
+			if (returnPromise instanceof Promise) {
+				returnPromise.then(onFullScreenEntered).catch(reject);
+			}
+		});
 	}
 
-	off(event, callback) {
-		const eventName = this.eventNamesMap[event];
-		if (eventName) {
-			document.removeEventListener(eventName, callback, false);
-		}
-	}
-
-	get isFullscreen() {
-		return Boolean(document[this.namesMap.fullscreenElement]);
-	}
-
-	get element() {
-		return document[this.namesMap.fullscreenElement];
-	}
-
-	get isEnabled() {
-		return Boolean(document[this.namesMap.fullscreenEnabled]);
+	toggle(element) {
+		return this.isFullscreen ? this.exit() : this.request(element);
 	}
 }
 
