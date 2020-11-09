@@ -14,6 +14,7 @@ import '@d2l/seek-bar/d2l-seek-bar.js';
 import './media-player-audio-bars.js';
 import { css, html, LitElement } from 'lit-element/lit-element.js';
 import { classMap } from 'lit-html/directives/class-map';
+import { FocusVisiblePolyfillMixin } from '@brightspace-ui/core/mixins/focus-visible-polyfill-mixin.js';
 import fullscreenApi from './src/fullscreen-api';
 import { ifDefined } from 'lit-html/directives/if-defined';
 import { InternalLocalizeMixin } from './src/mixins/internal-localize-mixin';
@@ -49,7 +50,7 @@ const TRACK_KINDS = {
 };
 const Url = URL || window.URL;
 
-class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
+class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMixin(LitElement))) {
 
 	static get properties() {
 		return {
@@ -269,26 +270,28 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 
 			#d2l-labs-media-player-audio-play-button-container {
 				background-color: white;
-				border-radius: 9px;
-				padding: 0;
 				position: absolute;
 			}
 
 			#d2l-labs-media-player-audio-play-button {
-				align-items: center;
+				background-color: transparent;
 				border: none;
-				border-radius: 9px;
-				display: flex;
-				height: 2.75rem;
-				justify-content: center;
-				margin: 0;
-				width: 2.75rem;
+				border-radius: 12px;
+				padding: 2px;
+			}
+
+			#d2l-labs-media-player-audio-play-button:focus {
+				outline: none;
 			}
 
 			#d2l-labs-media-player-audio-play-button:hover {
 				background: var(--d2l-color-mica);
 				background-clip: content-box;
 				cursor: pointer;
+			}
+
+			#d2l-labs-media-player-audio-play-button.focus-visible {
+				border: 2px solid var(--d2l-color-celestine);
 			}
 
 			#d2l-labs-media-player-audio-play-button > d2l-icon {
@@ -729,9 +732,9 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 
 					<div id="d2l-labs-media-player-audio-bars-container">
 						<div id="d2l-labs-media-player-audio-play-button-container">
-							<d2l-button id="d2l-labs-media-player-audio-play-button" title="${playTooltip}" aria-label="${playTooltip}" @click=${this._togglePlay}>
+							<button id="d2l-labs-media-player-audio-play-button" title="${playTooltip}" aria-label="${playTooltip}" @click=${this._togglePlay}>
 								<d2l-icon icon="${playIcon}"></d2l-icon>
-							</d2l-button>
+							</button>
 						</div>
 
 						<d2l-labs-media-player-audio-bars ?playing="${this._playing}"></d2l-labs-media-player-audio-bars>
