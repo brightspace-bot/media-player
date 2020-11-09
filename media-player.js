@@ -771,13 +771,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 	}
 
 	_onAlertButtonPress() {
-		const src = this.src;
-
-		this.src = null;
-
-		setTimeout(() => {
-			this.src = src;
-		}, 0);
+		this._determineSourceType();
 	}
 
 	_onCueChange() {
