@@ -838,13 +838,17 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 	}
 
 	_onLoadedData() {
-		this.dispatchEvent(new CustomEvent('loadeddata'));
+		if (this._sourceType !== SOURCE_TYPES.unknown) {
+			this.dispatchEvent(new CustomEvent('loadeddata'));
+		}
 	}
 
 	_onLoadedMetadata() {
-		this._loading = false;
-		this._setLoadSuccessMessage();
-		this.dispatchEvent(new CustomEvent('loadedmetadata'));
+		if (this._sourceType !== SOURCE_TYPES.unknown) {
+			this._loading = false;
+			this._setLoadSuccessMessage();
+			this.dispatchEvent(new CustomEvent('loadedmetadata'));
+		}
 	}
 
 	_onPause() {
