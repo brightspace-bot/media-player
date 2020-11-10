@@ -578,14 +578,6 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 			type: null
 		};
 		this._sourceType = SOURCE_TYPES.unknown;
-		const video = document.createElement('video');
-		video.src = this.src;
-
-		video.addEventListener('canplay', () => {
-			this._sourceType = video.videoHeight === 0 ? SOURCE_TYPES.audio : SOURCE_TYPES.video;
-		});
-
-		video.addEventListener('error', this._onError.bind(this));
 	}
 
 	static _formatTime(totalSeconds) {
@@ -684,20 +676,30 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 	}
 
 	_getMediaAreaView() {
+		if (!this.src) return null;
+
 		const playIcon = `tier3:${this._playing ? 'pause' : 'play'}`;
 		const playTooltip = `${this._playing ? this.localize('pause') : this.localize('play')} (${KEY_BINDINGS.play})`;
+		const mediaStyle = {};
+		if (this._sourceType === SOURCE_TYPES.unknown || this._loading) {
+			mediaStyle.display = 'none';
+		}
 
 		switch (this._sourceType) {
-			case SOURCE_TYPES.video:
+			case SOURCE_TYPES.unknown:
+				this._determineSourceType();
+			case SOURCE_TYPES.video: // eslint-disable-line no-fallthrough
 				return html`
 					<video
 						id="d2l-labs-media-player-video"
+						style=${styleMap(mediaStyle)}
 						?controls="${NATIVE_CONTROLS}"
 						?autoplay="${this.autoplay}"
 						?loop="${this.loop}"
 						poster="${ifDefined(this.poster)}"
 						preload="metadata"
 						@click=${this._onVideoClick}
+						@durationchange=${this._onDurationChange}
 						@ended=${this._onEnded}
 						@error=${this._onError}
 						@loadeddata=${this._onLoadedData}
@@ -714,10 +716,12 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 				return html`
 					<audio
 						id="d2l-labs-media-player-audio"
+						style=${styleMap(mediaStyle)}
 						?controls="${NATIVE_CONTROLS}"
 						?autoplay="${this.autoplay}"
 						?loop="${this.loop}"
 						preload="metadata"
+						@durationchange=${this._onDurationChange}
 						@ended=${this._onEnded}
 						@error=${this._onError}
 						@loadeddata=${this._onLoadedData}
@@ -814,6 +818,16 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 		this._dragging = true;
 	}
 
+	_onDurationChange(e) {
+		if (this._sourceType === SOURCE_TYPES.unknown) {
+			this._sourceType = this.shadowRoot.getElementById('d2l-labs-media-player-video').videoHeight === 0 ? SOURCE_TYPES.audio : SOURCE_TYPES.video;
+
+			if (this._sourceType === SOURCE_TYPES.audio) return;
+		}
+
+		this._duration = e.target.duration;
+	}
+
 	_onEnded() {
 		this.dispatchEvent(new CustomEvent('ended'));
 	}
@@ -828,10 +842,9 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 		this.dispatchEvent(new CustomEvent('loadeddata'));
 	}
 
-	_onLoadedMetadata($event) {
+	_onLoadedMetadata() {
 		this._loading = false;
 		this._setLoadSuccessMessage();
-		this._duration = $event.target.duration;
 		this.dispatchEvent(new CustomEvent('loadedmetadata'));
 	}
 
