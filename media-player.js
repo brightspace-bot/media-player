@@ -692,10 +692,10 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 						@durationchange=${this._onDurationChange}
 						@ended=${this._onEnded}
 						@error=${this._onError}
-						@loadeddata=${this._onLoadedData}
+						@loadeddata=${this._onLoadedDataVideo}
 						@play=${this._onPlay}
 						@pause=${this._onPause}
-						@loadedmetadata=${this._onLoadedMetadata}
+						@loadedmetadata=${this._onLoadedMetadataVideo}
 						@timeupdate=${this._onTimeUpdate}
 						@volumechange=${this._onVolumeChange}
 					>
@@ -714,10 +714,10 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 						@durationchange=${this._onDurationChange}
 						@ended=${this._onEnded}
 						@error=${this._onError}
-						@loadeddata=${this._onLoadedData}
+						@loadeddata=${this._onLoadedDataAudio}
 						@play=${this._onPlay}
 						@pause=${this._onPause}
-						@loadedmetadata=${this._onLoadedMetadata}
+						@loadedmetadata=${this._onLoadedMetadataAudio}
 						@timeupdate=${this._onTimeUpdate}
 						@volumechange=${this._onVolumeChange}
 					>
@@ -838,16 +838,36 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 	}
 
 	_onLoadedData() {
-		if (this._sourceType !== SOURCE_TYPES.unknown) {
-			this.dispatchEvent(new CustomEvent('loadeddata'));
+		this.dispatchEvent(new CustomEvent('loadeddata'));
+	}
+
+	_onLoadedDataAudio() {
+		if (this._sourceType === SOURCE_TYPES.audio) {
+			this._onLoadedData();
+		}
+	}
+
+	_onLoadedDataVideo() {
+		if (this._sourceType === SOURCE_TYPES.video) {
+			this._onLoadedData();
 		}
 	}
 
 	_onLoadedMetadata() {
-		if (this._sourceType !== SOURCE_TYPES.unknown) {
-			this._loading = false;
-			this._setLoadSuccessMessage();
-			this.dispatchEvent(new CustomEvent('loadedmetadata'));
+		this._loading = false;
+		this._setLoadSuccessMessage();
+		this.dispatchEvent(new CustomEvent('loadedmetadata'));
+	}
+
+	_onLoadedMetadataAudio() {
+		if (this._sourceType === SOURCE_TYPES.audio) {
+			this._onLoadedMetadata();
+		}
+	}
+
+	_onLoadedMetadataVideo() {
+		if (this._sourceType === SOURCE_TYPES.video) {
+			this._onLoadedMetadata();
 		}
 	}
 
