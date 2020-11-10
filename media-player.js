@@ -523,16 +523,6 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 		if (changedProperties.has('src')) {
 			this._determineSourceType();
 		}
-
-		if (changedProperties.has('_sourceType')) {
-			if (this._sourceType === SOURCE_TYPES.video) {
-				this._media = this.shadowRoot.getElementById('d2l-labs-media-player-video');
-			} else if (this._sourceType === SOURCE_TYPES.audio) {
-				this._media = this.shadowRoot.getElementById('d2l-labs-media-player-audio');
-			} else {
-				this._media = null;
-			}
-		}
 	}
 
 	get duration() {
@@ -784,6 +774,17 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 		}
 	}
 
+	get _media() {
+		switch (this._sourceType) {
+			case SOURCE_TYPES.audio:
+				return this.shadowRoot.getElementById('d2l-labs-media-player-audio');
+			case SOURCE_TYPES.video:
+				return this.shadowRoot.getElementById('d2l-labs-media-player-video');
+			default:
+				return null;
+		}
+	}
+
 	_onAlertButtonPress() {
 		this._determineSourceType();
 	}
@@ -821,8 +822,6 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 	_onDurationChange(e) {
 		if (this._sourceType === SOURCE_TYPES.unknown) {
 			this._sourceType = this.shadowRoot.getElementById('d2l-labs-media-player-video').videoHeight === 0 ? SOURCE_TYPES.audio : SOURCE_TYPES.video;
-
-			if (this._sourceType === SOURCE_TYPES.audio) return;
 		}
 
 		this._duration = e.target.duration;
