@@ -196,7 +196,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 			}
 
 			#d2l-labs-media-player-volume-level-container.d2l-labs-media-player-hidden {
-				left: -8rem;
+				left: -10000px;
 			}
 
 			#d2l-labs-media-player-volume-level-background {
