@@ -477,9 +477,10 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 									aria-valuemax="100"
 									aria-valuenow="${Math.floor(this._volume * 100)}"
 									title="${this.localize('volumeSlider')}"
-									@position-change=${this._onPositionChangeVolume}
+									@drag-start=${this._onDragStartVolume}
 									@focus=${this._startUsingVolumeContainer}
 									@focusout=${this._stopUsingVolumeContainer}
+									@position-change=${this._onPositionChangeVolume}
 								></d2l-seek-bar>
 							</div>
 						</div>
@@ -817,6 +818,15 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 		}
 
 		this._dragging = true;
+		setTimeout(() => {
+			this._updateCurrentTimeFromSeekbarProgress();
+		}, 0);
+	}
+
+	_onDragStartVolume() {
+		setTimeout(() => {
+			this._onPositionChangeVolume();
+		}, 0);
 	}
 
 	_onDurationChange(e) {
