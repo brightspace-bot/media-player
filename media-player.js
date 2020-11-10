@@ -687,7 +687,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 						?autoplay="${this.autoplay}"
 						?loop="${this.loop}"
 						poster="${ifDefined(this.poster)}"
-						preload="metadata"
+						preload="auto"
 						@click=${this._onVideoClick}
 						@durationchange=${this._onDurationChange}
 						@ended=${this._onEnded}
@@ -710,7 +710,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 						?controls="${NATIVE_CONTROLS}"
 						?autoplay="${this.autoplay}"
 						?loop="${this.loop}"
-						preload="metadata"
+						preload="auto"
 						@durationchange=${this._onDurationChange}
 						@ended=${this._onEnded}
 						@error=${this._onError}
