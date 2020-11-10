@@ -24,7 +24,6 @@ describe('d2l-labs-media-player', () => {
 	[
 		'video',
 		'audio',
-		'error'
 	].forEach((id) => {
 		it(id, async function() {
 			const rect = await visualDiff.getRect(page, `#${id}`);

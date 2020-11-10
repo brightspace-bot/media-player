@@ -14,6 +14,7 @@ import '@d2l/seek-bar/d2l-seek-bar.js';
 import './media-player-audio-bars.js';
 import { css, html, LitElement } from 'lit-element/lit-element.js';
 import { classMap } from 'lit-html/directives/class-map';
+import { FocusVisiblePolyfillMixin } from '@brightspace-ui/core/mixins/focus-visible-polyfill-mixin.js';
 import fullscreenApi from './src/fullscreen-api';
 import { ifDefined } from 'lit-html/directives/if-defined';
 import { InternalLocalizeMixin } from './src/mixins/internal-localize-mixin';
@@ -49,7 +50,7 @@ const TRACK_KINDS = {
 };
 const Url = URL || window.URL;
 
-class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
+class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMixin(LitElement))) {
 
 	static get properties() {
 		return {
@@ -195,7 +196,7 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			}
 
 			#d2l-labs-media-player-volume-level-container.d2l-labs-media-player-hidden {
-				left: -8rem;
+				left: -10000px;
 			}
 
 			#d2l-labs-media-player-volume-level-background {
@@ -269,26 +270,28 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 
 			#d2l-labs-media-player-audio-play-button-container {
 				background-color: white;
-				border-radius: 9px;
-				padding: 0;
 				position: absolute;
 			}
 
 			#d2l-labs-media-player-audio-play-button {
-				align-items: center;
+				background-color: transparent;
 				border: none;
-				border-radius: 9px;
-				display: flex;
-				height: 2.75rem;
-				justify-content: center;
-				margin: 0;
-				width: 2.75rem;
+				border-radius: 12px;
+				padding: 2px;
+			}
+
+			#d2l-labs-media-player-audio-play-button:focus {
+				outline: none;
 			}
 
 			#d2l-labs-media-player-audio-play-button:hover {
 				background: var(--d2l-color-mica);
 				background-clip: content-box;
 				cursor: pointer;
+			}
+
+			#d2l-labs-media-player-audio-play-button.focus-visible {
+				border: 2px solid var(--d2l-color-celestine);
 			}
 
 			#d2l-labs-media-player-audio-play-button > d2l-icon {
@@ -520,16 +523,6 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		if (changedProperties.has('src')) {
 			this._determineSourceType();
 		}
-
-		if (changedProperties.has('_sourceType')) {
-			if (this._sourceType === SOURCE_TYPES.video) {
-				this._media = this.shadowRoot.getElementById('d2l-labs-media-player-video');
-			} else if (this._sourceType === SOURCE_TYPES.audio) {
-				this._media = this.shadowRoot.getElementById('d2l-labs-media-player-audio');
-			} else {
-				this._media = null;
-			}
-		}
 	}
 
 	get duration() {
@@ -575,14 +568,6 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 			type: null
 		};
 		this._sourceType = SOURCE_TYPES.unknown;
-		const video = document.createElement('video');
-		video.src = this.src;
-
-		video.addEventListener('canplay', () => {
-			this._sourceType = video.videoHeight === 0 ? SOURCE_TYPES.audio : SOURCE_TYPES.video;
-		});
-
-		video.addEventListener('error', this._onError.bind(this));
 	}
 
 	static _formatTime(totalSeconds) {
@@ -613,10 +598,17 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		return str.join('');
 	}
 
+	_getAbsoluteUrl(url) {
+		const a = document.createElement('a');
+		a.setAttribute('href', url);
+
+		return a.href;
+	}
+
 	_getDownloadButtonView() {
 		if (!this.allowDownload) return null;
 
-		const url = new Url(this.src);
+		const url = new Url(this._getAbsoluteUrl(this.src));
 		const searchParams = url.searchParams;
 		searchParams.append('attachment', 'true');
 		const linkHref = url.toString();
@@ -674,26 +666,36 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 	}
 
 	_getMediaAreaView() {
+		if (!this.src) return null;
+
 		const playIcon = `tier3:${this._playing ? 'pause' : 'play'}`;
 		const playTooltip = `${this._playing ? this.localize('pause') : this.localize('play')} (${KEY_BINDINGS.play})`;
+		const mediaStyle = {};
+		if (this._sourceType === SOURCE_TYPES.unknown || this._loading) {
+			mediaStyle.display = 'none';
+		}
 
 		switch (this._sourceType) {
-			case SOURCE_TYPES.video:
+			case SOURCE_TYPES.unknown:
+				this._determineSourceType();
+			case SOURCE_TYPES.video: // eslint-disable-line no-fallthrough
 				return html`
 					<video
 						id="d2l-labs-media-player-video"
+						style=${styleMap(mediaStyle)}
 						?controls="${NATIVE_CONTROLS}"
 						?autoplay="${this.autoplay}"
 						?loop="${this.loop}"
 						poster="${ifDefined(this.poster)}"
-						preload="metadata"
+						preload="auto"
 						@click=${this._onVideoClick}
+						@durationchange=${this._onDurationChange}
 						@ended=${this._onEnded}
 						@error=${this._onError}
-						@loadeddata=${this._onLoadedData}
+						@loadeddata=${this._onLoadedDataVideo}
 						@play=${this._onPlay}
 						@pause=${this._onPause}
-						@loadedmetadata=${this._onLoadedMetadata}
+						@loadedmetadata=${this._onLoadedMetadataVideo}
 						@timeupdate=${this._onTimeUpdate}
 						@volumechange=${this._onVolumeChange}
 					>
@@ -704,16 +706,18 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 				return html`
 					<audio
 						id="d2l-labs-media-player-audio"
+						style=${styleMap(mediaStyle)}
 						?controls="${NATIVE_CONTROLS}"
 						?autoplay="${this.autoplay}"
 						?loop="${this.loop}"
-						preload="metadata"
+						preload="auto"
+						@durationchange=${this._onDurationChange}
 						@ended=${this._onEnded}
 						@error=${this._onError}
-						@loadeddata=${this._onLoadedData}
+						@loadeddata=${this._onLoadedDataAudio}
 						@play=${this._onPlay}
 						@pause=${this._onPause}
-						@loadedmetadata=${this._onLoadedMetadata}
+						@loadedmetadata=${this._onLoadedMetadataAudio}
 						@timeupdate=${this._onTimeUpdate}
 						@volumechange=${this._onVolumeChange}
 					>
@@ -722,9 +726,9 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 
 					<div id="d2l-labs-media-player-audio-bars-container">
 						<div id="d2l-labs-media-player-audio-play-button-container">
-							<d2l-button id="d2l-labs-media-player-audio-play-button" title="${playTooltip}" aria-label="${playTooltip}" @click=${this._togglePlay}>
+							<button id="d2l-labs-media-player-audio-play-button" title="${playTooltip}" aria-label="${playTooltip}" @click=${this._togglePlay}>
 								<d2l-icon icon="${playIcon}"></d2l-icon>
-							</d2l-button>
+							</button>
 						</div>
 
 						<d2l-labs-media-player-audio-bars ?playing="${this._playing}"></d2l-labs-media-player-audio-bars>
@@ -770,14 +774,19 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		}
 	}
 
+	get _media() {
+		switch (this._sourceType) {
+			case SOURCE_TYPES.audio:
+				return this.shadowRoot.getElementById('d2l-labs-media-player-audio');
+			case SOURCE_TYPES.video:
+				return this.shadowRoot.getElementById('d2l-labs-media-player-video');
+			default:
+				return null;
+		}
+	}
+
 	_onAlertButtonPress() {
-		const src = this.src;
-
-		this.src = null;
-
-		setTimeout(() => {
-			this.src = src;
-		}, 0);
+		this._determineSourceType();
 	}
 
 	_onCueChange() {
@@ -810,6 +819,14 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 		this._dragging = true;
 	}
 
+	_onDurationChange(e) {
+		if (this._sourceType === SOURCE_TYPES.unknown) {
+			this._sourceType = this.shadowRoot.getElementById('d2l-labs-media-player-video').videoHeight === 0 ? SOURCE_TYPES.audio : SOURCE_TYPES.video;
+		}
+
+		this._duration = e.target.duration;
+	}
+
 	_onEnded() {
 		this.dispatchEvent(new CustomEvent('ended'));
 	}
@@ -821,14 +838,37 @@ class MediaPlayer extends InternalLocalizeMixin(RtlMixin(LitElement)) {
 	}
 
 	_onLoadedData() {
-		this._loading = false;
-		this._setLoadSuccessMessage();
 		this.dispatchEvent(new CustomEvent('loadeddata'));
 	}
 
-	_onLoadedMetadata($event) {
-		this._duration = $event.target.duration;
+	_onLoadedDataAudio() {
+		if (this._sourceType === SOURCE_TYPES.audio) {
+			this._onLoadedData();
+		}
+	}
+
+	_onLoadedDataVideo() {
+		if (this._sourceType === SOURCE_TYPES.video) {
+			this._onLoadedData();
+		}
+	}
+
+	_onLoadedMetadata() {
+		this._loading = false;
+		this._setLoadSuccessMessage();
 		this.dispatchEvent(new CustomEvent('loadedmetadata'));
+	}
+
+	_onLoadedMetadataAudio() {
+		if (this._sourceType === SOURCE_TYPES.audio) {
+			this._onLoadedMetadata();
+		}
+	}
+
+	_onLoadedMetadataVideo() {
+		if (this._sourceType === SOURCE_TYPES.video) {
+			this._onLoadedMetadata();
+		}
 	}
 
 	_onPause() {
