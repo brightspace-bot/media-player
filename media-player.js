@@ -668,8 +668,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 	}
 
 	_getMediaAreaView() {
-		if (!this.src) return null;
-		if (this._message.type === MESSAGE_TYPES.error) return null;
+		if (!this.src || this._message.type === MESSAGE_TYPES.error) return null;
 
 		const playIcon = `tier3:${this._playing ? 'pause' : 'play'}`;
 		const playTooltip = `${this._playing ? this.localize('pause') : this.localize('play')} (${KEY_BINDINGS.play})`;
