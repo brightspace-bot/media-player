@@ -668,7 +668,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 	}
 
 	_getMediaAreaView() {
-		if (!this.src) return null;
+		if (!this.src || this._message.type === MESSAGE_TYPES.error) return null;
 
 		const playIcon = `tier3:${this._playing ? 'pause' : 'play'}`;
 		const playTooltip = `${this._playing ? this.localize('pause') : this.localize('play')} (${KEY_BINDINGS.play})`;
@@ -701,7 +701,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 						@timeupdate=${this._onTimeUpdate}
 						@volumechange=${this._onVolumeChange}
 					>
-						<source src="${this.src}">
+						<source src="${this.src}" @error=${this._onError}>
 					</video>
 				`;
 			case SOURCE_TYPES.audio:
@@ -723,7 +723,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 						@timeupdate=${this._onTimeUpdate}
 						@volumechange=${this._onVolumeChange}
 					>
-						<source src="${this.src}"></source>
+						<source src="${this.src}" @error=${this._onError}></source>
 					</audio>
 
 					<div id="d2l-labs-media-player-audio-bars-container">
