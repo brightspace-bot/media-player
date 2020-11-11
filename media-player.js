@@ -257,7 +257,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 				height: 4.05rem;
 				justify-content: center;
 				min-width: ${MIN_TRACK_WIDTH_PX}px;
-				width: 50%;
+				width: 100%;
 			}
 
 			#d2l-labs-media-player-track-container > div > span {
