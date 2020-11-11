@@ -251,7 +251,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 				width: 100%;
 			}
 
-			@media screen (min-width: 768px) {
+			@media screen and (min-width: 768px) {
 				#d2l-labs-media-player-track-container > div {
 					align-items: center;
 					display: flex;
@@ -262,7 +262,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 				}
 			}
 
-			@media screen (max-width: 767px) {
+			@media screen and (max-width: 767px) {
 				#d2l-labs-media-player-track-container > div {
 					align-items: center;
 					display: flex;
