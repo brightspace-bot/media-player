@@ -703,6 +703,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 						poster="${ifDefined(this.poster)}"
 						preload="auto"
 						@click=${this._onVideoClick}
+						@contextmenu=${this._onContextMenu}
 						@durationchange=${this._onDurationChange}
 						@ended=${this._onEnded}
 						@error=${this._onError}
@@ -725,6 +726,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 						?autoplay="${this.autoplay}"
 						?loop="${this.loop}"
 						preload="auto"
+						@contextmenu=${this._onContextMenu}
 						@durationchange=${this._onDurationChange}
 						@ended=${this._onEnded}
 						@error=${this._onError}
@@ -801,6 +803,10 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 
 	_onAlertButtonPress() {
 		this._determineSourceType();
+	}
+
+	_onContextMenu(e) {
+		if (!this.allowDownload) e.preventDefault();
 	}
 
 	_onCueChange() {
