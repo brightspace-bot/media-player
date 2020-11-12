@@ -1010,11 +1010,18 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 			}
 		});
 
-		setTimeout(() => {
+		// Safari sets the mode of text tracks itself, which have to be overwritten here
+		// It has been observed to happen synchronously, or during the next event loop
+		// Changing the mode in this event loop and the next catches both scenarios
+		// Needs to be caught right away, since the cuechange event can be emitted immediately
+		const setAllDisabled = (() => {
 			for (let i = 0; i < this._media.textTracks.length; i++) {
 				this._media.textTracks[i].mode = 'disabled';
 			}
-		}, 0);
+		}).bind(this);
+
+		setAllDisabled();
+		setTimeout(setAllDisabled, 0);
 	}
 
 	_onTimeUpdate() {
