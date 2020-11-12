@@ -35,7 +35,7 @@ const MESSAGE_TYPES = {
 	success: 2
 };
 const MIN_TRACK_WIDTH_PX = 250;
-const NATIVE_CONTROLS = !document.createElement('video').canPlayType;
+const IS_IOS = /iPad|iPhone|iPod/.test(navigator.platform);
 const PLAYBACK_SPEEDS = ['0.25', '0.5', '0.75', '1.0', '1.25', '1.5', '2.0'];
 const SEEK_BAR_UPDATE_PERIOD_MS = 0;
 const SOURCE_TYPES = {
@@ -88,7 +88,6 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 			}
 
 			#d2l-labs-media-player-media-container {
-				min-height: 15rem;
 				overflow: hidden;
 				position: relative;
 				width: 100%;
@@ -413,7 +412,10 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 		const playTooltip = `${this._playing ? this.localize('pause') : this.localize('play')} (${KEY_BINDINGS.play})`;
 		const volumeTooltip = `${this._muted ? this.localize('unmute') : this.localize('mute')} (${KEY_BINDINGS.mute})`;
 
-		const mediaContainerStyle = { cursor: !this._hidingCustomControls() || this._sourceType === SOURCE_TYPES.unknown ? 'auto' : 'none' };
+		const mediaContainerStyle = {
+			cursor: !this._hidingCustomControls() || this._sourceType === SOURCE_TYPES.unknown ? 'auto' : 'none',
+			minHeight: this.isIOSVideo ? 'auto' : '15rem'
+		};
 		const trackContainerStyle = { bottom: this._hidingCustomControls() ? '3px' : 'calc(1.8rem + 20px)' };
 		const trackSpanStyle = { fontSize: `${this._trackFontSizeRem}rem`, lineHeight: `${this._trackFontSizeRem * 1.2}rem` };
 
@@ -443,13 +445,14 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 		<div id="d2l-labs-media-player-media-container" class=${classMap(mediaContainerClass)} style=${styleMap(mediaContainerStyle)} @mousemove=${this._onVideoContainerMouseMove} @keydown=${this._listenForKeyboard}>
 			${this._getMediaAreaView()}
 
+			${this.isIOSVideo ? null : html`
 			<div id="d2l-labs-media-player-track-container" style=${styleMap(trackContainerStyle)} @click=${this._onTrackContainerClick}>
 				<div>
 					<span style=${styleMap(trackSpanStyle)} role="status">${this._trackText}</span>
 				</div>
 			</div>
 
-			<div class=${classMap(mediaControlsClass)} id="d2l-labs-media-player-media-controls" ?hidden="${NATIVE_CONTROLS}" @mouseenter=${this._startHoveringControls} @mouseleave=${this._stopHoveringControls}>
+			<div class=${classMap(mediaControlsClass)} id="d2l-labs-media-player-media-controls" @mouseenter=${this._startHoveringControls} @mouseleave=${this._stopHoveringControls}>
 				<d2l-seek-bar
 					id="d2l-labs-media-player-seek-bar"
 					fullWidth
@@ -468,7 +471,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 				<div id="d2l-labs-media-player-buttons">
 					<d2l-button-icon icon="${playIcon}" text="${playTooltip}"  @click="${this._togglePlay}" theme="${ifDefined(theme)}"></d2l-button-icon>
 
-					<div id="d2l-labs-media-player-volume-container" @mouseenter="${this._startUsingVolumeContainer}" @mouseleave="${this._stopUsingVolumeContainer}">
+					<div id="d2l-labs-media-player-volume-container" @mouseenter="${this._startUsingVolumeContainer}" @mouseleave="${this._stopUsingVolumeContainer}" ?hidden="${IS_IOS}">
 						<d2l-button-icon
 							class="d2l-dropdown-opener"
 							icon="${volumeIcon}"
@@ -526,7 +529,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 
 				</div>
 			</div>
-		</div>
+		</div>`}
 		`;
 	}
 
@@ -550,6 +553,10 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 		if (!fullscreenApi.isFullscreen) return;
 
 		this._toggleFullscreen();
+	}
+
+	get isIOSVideo() {
+		return IS_IOS && this._sourceType === SOURCE_TYPES.video;
 	}
 
 	pause() {
@@ -697,7 +704,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 					<video
 						id="d2l-labs-media-player-video"
 						style=${styleMap(mediaStyle)}
-						?controls="${NATIVE_CONTROLS}"
+						?controls="${IS_IOS}"
 						?autoplay="${this.autoplay}"
 						?loop="${this.loop}"
 						poster="${ifDefined(this.poster)}"
@@ -722,7 +729,6 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 					<audio
 						id="d2l-labs-media-player-audio"
 						style=${styleMap(mediaStyle)}
-						?controls="${NATIVE_CONTROLS}"
 						?autoplay="${this.autoplay}"
 						?loop="${this.loop}"
 						preload="auto"
@@ -772,7 +778,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 
 	_hidingCustomControls() {
 		const settingsMenuOpened = this._settingsMenu && this._settingsMenu.opened;
-		return NATIVE_CONTROLS || (this._playing && !this._recentlyShowedCustomControls && !this._hoveringMediaControls && !settingsMenuOpened && !this._usingVolumeContainer && this._sourceType === SOURCE_TYPES.video) || this._sourceType === SOURCE_TYPES.unknown;
+		return this.isIOSVideo || (this._playing && !this._recentlyShowedCustomControls && !this._hoveringMediaControls && !settingsMenuOpened && !this._usingVolumeContainer && this._sourceType === SOURCE_TYPES.video) || this._sourceType === SOURCE_TYPES.unknown;
 	}
 
 	_listenForKeyboard(e) {
@@ -1047,6 +1053,12 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 	}
 
 	_onVideoClick() {
+		// Given that we are currently not rendering custom controls on the iOS video player,
+		//  we let the native controls/player handle the play/pause toggling
+		if (IS_IOS) {
+			return;
+		}
+
 		this._togglePlay();
 		this._showControls(true);
 
