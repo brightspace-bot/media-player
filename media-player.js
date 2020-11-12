@@ -23,6 +23,7 @@ import ResizeObserver from 'resize-observer-polyfill';
 import { RtlMixin } from '@brightspace-ui/core/mixins/rtl-mixin';
 import { styleMap } from 'lit-html/directives/style-map';
 
+const IS_IOS = /iPad|iPhone|iPod/.test(navigator.platform);
 const FULLSCREEN_ENABLED = fullscreenApi.isEnabled;
 const HIDE_DELAY_MS = 3000;
 const KEY_BINDINGS = {
@@ -443,6 +444,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 		<div id="d2l-labs-media-player-media-container" class=${classMap(mediaContainerClass)} style=${styleMap(mediaContainerStyle)} @mousemove=${this._onVideoContainerMouseMove} @keydown=${this._listenForKeyboard}>
 			${this._getMediaAreaView()}
 
+			${IS_IOS ? null : html`
 			<div id="d2l-labs-media-player-track-container" style=${styleMap(trackContainerStyle)} @click=${this._onTrackContainerClick}>
 				<div>
 					<span style=${styleMap(trackSpanStyle)} role="status">${this._trackText}</span>
@@ -526,7 +528,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 
 				</div>
 			</div>
-		</div>
+		</div>`}
 		`;
 	}
 
@@ -697,7 +699,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 					<video
 						id="d2l-labs-media-player-video"
 						style=${styleMap(mediaStyle)}
-						?controls="${NATIVE_CONTROLS}"
+						?controls="${IS_IOS || NATIVE_CONTROLS}"
 						?autoplay="${this.autoplay}"
 						?loop="${this.loop}"
 						poster="${ifDefined(this.poster)}"
@@ -1047,7 +1049,11 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 	}
 
 	_onVideoClick() {
-		this._togglePlay();
+		// Given that we are currently not rendering custom controls on iOS, we let the native
+		// controls/player handle the play/pause toggling
+		if (!IS_IOS) {
+			this._togglePlay();
+		}
 		this._showControls(true);
 
 		if (this._videoClicked) {
