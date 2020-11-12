@@ -255,7 +255,6 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 				#d2l-labs-media-player-track-container > div {
 					align-items: center;
 					display: flex;
-					height: 4.05rem;
 					justify-content: center;
 					min-width: ${MIN_TRACK_WIDTH_PX}px;
 					width: 50%;
@@ -266,7 +265,6 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 				#d2l-labs-media-player-track-container > div {
 					align-items: center;
 					display: flex;
-					height: 4.05rem;
 					justify-content: center;
 					width: 100%;
 				}
@@ -416,7 +414,8 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 		const volumeTooltip = `${this._muted ? this.localize('unmute') : this.localize('mute')} (${KEY_BINDINGS.mute})`;
 
 		const mediaContainerStyle = { cursor: !this._hidingCustomControls() || this._sourceType === SOURCE_TYPES.unknown ? 'auto' : 'none' };
-		const trackContainerStyle = { bottom: this._hidingCustomControls() ? '3px' : 'calc(1.8rem + 20px)', fontSize: `${this._trackFontSizeRem}rem`, lineHeight: `${this._trackFontSizeRem * 1.2}rem` };
+		const trackContainerStyle = { bottom: this._hidingCustomControls() ? '3px' : 'calc(1.8rem + 20px)' };
+		const trackSpanStyle = { fontSize: `${this._trackFontSizeRem}rem`, lineHeight: `${this._trackFontSizeRem * 1.2}rem` };
 
 		const mediaContainerClass = { 'd2l-labs-media-player-type-is-audio': this._sourceType === SOURCE_TYPES.audio, 'd2l-labs-media-player-type-is-video': this._sourceType === SOURCE_TYPES.video, 'd2l-labs-media-player-type-is-unknown': this._sourceType === SOURCE_TYPES.unknown };
 		const mediaControlsClass = { 'd2l-labs-media-player-hidden': this._hidingCustomControls() };
@@ -446,7 +445,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 
 			<div id="d2l-labs-media-player-track-container" style=${styleMap(trackContainerStyle)} @click=${this._onTrackContainerClick}>
 				<div>
-					<span role="status">${this._trackText}</span>
+					<span style=${styleMap(trackSpanStyle)} role="status">${this._trackText}</span>
 				</div>
 			</div>
 
