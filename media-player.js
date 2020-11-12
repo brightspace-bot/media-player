@@ -635,7 +635,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 		const linkHref = url.toString();
 
 		return html`
-			<d2l-menu-item-link href="${linkHref}" target="_blank" text="${this.localize('download')}" download></d2l-menu-item-link>
+			<d2l-menu-item-link href="${linkHref}" text="${this.localize('download')}" download></d2l-menu-item-link>
 		`;
 	}
 
