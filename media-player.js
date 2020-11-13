@@ -73,7 +73,8 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 			_tracks: { type: Array, attribute: false },
 			_trackText: { type: String, attribute: false },
 			_usingVolumeContainer: { type: Boolean, attribute: false },
-			_volume: { type: Number, attribute: false }
+			_volume: { type: Number, attribute: false },
+			_widthPercentage: { type: Number, attribute: false }
 		};
 	}
 
@@ -367,6 +368,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 		this._usingVolumeContainer = false;
 		this._videoClicked = false;
 		this._volume = 1;
+		this._widthPercentage = null;
 	}
 
 	get currentTime() {
@@ -397,6 +399,18 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 		new ResizeObserver((entries) => {
 			for (const entry of entries) {
 				const { height, width } = entry.contentRect;
+
+				if (height === this._twoHeightsAgo && width === this._twoWidthsAgo) {
+					const widthShouldBePx = Math.min(this._twoWidthsAgo, this._lastWidth);
+					this._widthPercentage = 100 * widthShouldBePx / Math.max(this._twoWidthsAgo, this._lastWidth);
+				}
+
+				this._twoHeightsAgo = this._lastHeight;
+				this._lastHeight = height;
+
+				this._twoWidthsAgo = this._lastWidth;
+				this._lastWidth = width;
+
 				const multiplier = Math.sqrt(Math.max(1, Math.min(height, width) / MIN_TRACK_WIDTH_PX));
 				this._trackFontSizeRem = multiplier;
 			}
@@ -414,7 +428,8 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 
 		const mediaContainerStyle = {
 			cursor: !this._hidingCustomControls() || this._sourceType === SOURCE_TYPES.unknown ? 'auto' : 'none',
-			minHeight: this.isIOSVideo ? 'auto' : '15rem'
+			minHeight: this.isIOSVideo ? 'auto' : '15rem',
+			width: this._widthPercentage === null ? '100%' : `${this._widthPercentage}%`
 		};
 		const trackContainerStyle = { bottom: this._hidingCustomControls() ? '3px' : 'calc(1.8rem + 20px)' };
 		const trackSpanStyle = { fontSize: `${this._trackFontSizeRem}rem`, lineHeight: `${this._trackFontSizeRem * 1.2}rem` };
