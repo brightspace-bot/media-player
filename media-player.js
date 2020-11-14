@@ -437,6 +437,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 
 		const mediaContainerStyle = {
 			cursor: !this._hidingCustomControls() || this._sourceType === SOURCE_TYPES.unknown ? 'auto' : 'none',
+			display: this._loading || this._sourceType === SOURCE_TYPES.unknown ? 'none' : 'block',
 			minHeight: this.isIOSVideo ? 'auto' : '15rem',
 			height: this._heightPixels ? `${this._heightPixels}px` : '100%'
 		};
