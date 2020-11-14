@@ -187,11 +187,11 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 			}
 
 			#d2l-labs-media-player-volume-level-container {
-				bottom: 1.65rem;
-				height: 1rem;
+				bottom: calc(1.8rem + 6px);
+				height: 11px;
 				left: 0;
 				position: absolute;
-				width: 2rem;
+				width: 1.8rem;
 				z-index: 2;
 			}
 
@@ -200,23 +200,31 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 			}
 
 			#d2l-labs-media-player-volume-level-background {
+				align-items: center;
 				background-color: rgba(0, 0, 0, 0.69);
 				border-radius: 0 0.3rem 0.3rem 0;
-				bottom: 4.625rem;
-				height: 2rem;
-				left: -2.625rem;
+				display: flex;
+				bottom: 4.55rem;
+				height: 1.8rem;
+				justify-content: center;
+				left: -2.7rem;
 				padding: 0 0.625rem;
 				position: relative;
 				width: 6rem;
 			}
 
-			#d2l-labs-media-player-volume-level {
+			#d2l-labs-media-player-volume-slider-container {
+				height: 100%;
+				width: 100%;
+			}
+
+			#d2l-labs-media-player-volume-slider {
 				--d2l-knob-focus-color: #ffffff;
-				--d2l-knob-focus-size: 4px;
-				--d2l-knob-size: 18px;
+				--d2l-knob-focus-size: 0.25rem;
+				--d2l-knob-size: 0.8rem;
 				--d2l-outer-knob-color: var(--d2l-color-celestine-plus-1);
 				position: relative;
-				top: 0.5625rem;
+				top: calc(0.5rem + 1px);
 			}
 
 			.d2l-labs-media-player-rotated {
@@ -311,8 +319,8 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 			}
 
 			#d2l-labs-media-player-settings-menu {
-				bottom: 2.65rem;
-				left: 0.9rem;
+				bottom: calc(1.8rem + 18px);
+				left: calc(0.2rem + 14px);
 			}
 
 			[dir="rtl"] #d2l-labs-media-player-settings-menu {
@@ -392,7 +400,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 		this._seekBar = this.shadowRoot.getElementById('d2l-labs-media-player-seek-bar');
 		this._settingsMenu = this.shadowRoot.getElementById('d2l-labs-media-player-settings-menu');
 		this._speedLevelBackground = this.shadowRoot.getElementById('d2l-labs-media-player-speed-level-background');
-		this._volumeLevel = this.shadowRoot.getElementById('d2l-labs-media-player-volume-level');
+		this._volumeSlider = this.shadowRoot.getElementById('d2l-labs-media-player-volume-slider');
 
 		this._startUpdatingCurrentTime();
 
@@ -501,20 +509,22 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 						></d2l-button-icon>
 						<div id="d2l-labs-media-player-volume-level-container" class=${classMap(volumeLevelContainerClass)}>
 							<div class="d2l-labs-media-player-rotated" id="d2l-labs-media-player-volume-level-background">
-								<d2l-seek-bar solid
-									id="d2l-labs-media-player-volume-level"
-									vertical
-									value="${Math.round(this._volume * 100)}"
-									aria-label="${this.localize('volumeSlider')}"
-									aria-orientation="vertical" aria-valuemin="0"
-									aria-valuemax="100"
-									aria-valuenow="${Math.floor(this._volume * 100)}"
-									title="${this.localize('volumeSlider')}"
-									@drag-start=${this._onDragStartVolume}
-									@focus=${this._startUsingVolumeContainer}
-									@focusout=${this._stopUsingVolumeContainer}
-									@position-change=${this._onPositionChangeVolume}
-								></d2l-seek-bar>
+								<div id="d2l-labs-media-player-volume-slider-container">
+									<d2l-seek-bar solid
+										id="d2l-labs-media-player-volume-slider"
+										vertical
+										value="${Math.round(this._volume * 100)}"
+										aria-label="${this.localize('volumeSlider')}"
+										aria-orientation="vertical" aria-valuemin="0"
+										aria-valuemax="100"
+										aria-valuenow="${Math.floor(this._volume * 100)}"
+										title="${this.localize('volumeSlider')}"
+										@drag-start=${this._onDragStartVolume}
+										@focus=${this._startUsingVolumeContainer}
+										@focusout=${this._stopUsingVolumeContainer}
+										@position-change=${this._onPositionChangeVolume}
+									></d2l-seek-bar>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -546,8 +556,8 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 					${fullscreenButton}
 
 				</div>
-			</div>
-		</div>`}
+			</div>`}
+		</div>
 		`;
 	}
 
@@ -709,10 +719,6 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 
 		const playIcon = `tier3:${this._playing ? 'pause' : 'play'}`;
 		const playTooltip = `${this._playing ? this.localize('pause') : this.localize('play')} (${KEY_BINDINGS.play})`;
-		const mediaStyle = {};
-		if (this._sourceType === SOURCE_TYPES.unknown || this._loading) {
-			mediaStyle.display = 'none';
-		}
 
 		switch (this._sourceType) {
 			case SOURCE_TYPES.unknown:
@@ -721,7 +727,6 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 				return html`
 					<video
 						id="d2l-labs-media-player-video"
-						style=${styleMap(mediaStyle)}
 						?controls="${IS_IOS}"
 						?autoplay="${this.autoplay}"
 						?loop="${this.loop}"
@@ -746,7 +751,6 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 				return html`
 					<audio
 						id="d2l-labs-media-player-audio"
-						style=${styleMap(mediaStyle)}
 						?autoplay="${this.autoplay}"
 						?loop="${this.loop}"
 						preload="auto"
@@ -945,7 +949,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 	}
 
 	_onPositionChangeVolume() {
-		this._media.volume = this._volumeLevel.immediateValue / 100;
+		this._media.volume = this._volumeSlider.immediateValue / 100;
 	}
 
 	async _onSlotChange(e) {
