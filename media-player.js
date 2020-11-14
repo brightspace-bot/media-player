@@ -429,6 +429,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 
 		const mediaContainerStyle = {
 			cursor: !this._hidingCustomControls() || this._sourceType === SOURCE_TYPES.unknown ? 'auto' : 'none',
+			display: this._loading || this._sourceType === SOURCE_TYPES.unknown ? 'none' : 'block',
 			minHeight: this.isIOSVideo ? 'auto' : '15rem',
 			height: this._heightPixels ? `${this._heightPixels}px` : '100%'
 		};
@@ -709,10 +710,6 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 
 		const playIcon = `tier3:${this._playing ? 'pause' : 'play'}`;
 		const playTooltip = `${this._playing ? this.localize('pause') : this.localize('play')} (${KEY_BINDINGS.play})`;
-		const mediaStyle = {};
-		if (this._sourceType === SOURCE_TYPES.unknown || this._loading) {
-			mediaStyle.display = 'none';
-		}
 
 		switch (this._sourceType) {
 			case SOURCE_TYPES.unknown:
@@ -721,7 +718,6 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 				return html`
 					<video
 						id="d2l-labs-media-player-video"
-						style=${styleMap(mediaStyle)}
 						?controls="${IS_IOS}"
 						?autoplay="${this.autoplay}"
 						?loop="${this.loop}"
@@ -746,7 +742,6 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 				return html`
 					<audio
 						id="d2l-labs-media-player-audio"
-						style=${styleMap(mediaStyle)}
 						?autoplay="${this.autoplay}"
 						?loop="${this.loop}"
 						preload="auto"
