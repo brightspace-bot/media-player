@@ -438,10 +438,10 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 		const mediaContainerStyle = {
 			cursor: !this._hidingCustomControls() || this._sourceType === SOURCE_TYPES.unknown ? 'auto' : 'none',
 			display: this._loading || this._sourceType === SOURCE_TYPES.unknown ? 'none' : 'block',
-			minHeight: this.isIOSVideo ? 'auto' : '15rem',
+			minHeight: this.isIOSVideo ? 'auto' : '17rem',
 			height: this._heightPixels ? `${this._heightPixels}px` : '100%'
 		};
-		const trackContainerStyle = { bottom: this._hidingCustomControls() ? '3px' : 'calc(1.8rem + 20px)' };
+		const trackContainerStyle = { bottom: this._hidingCustomControls() ? '12px' : 'calc(1.8rem + 38px)' };
 		const trackSpanStyle = { fontSize: `${this._trackFontSizeRem}rem`, lineHeight: `${this._trackFontSizeRem * 1.2}rem` };
 
 		const mediaContainerClass = { 'd2l-labs-media-player-type-is-audio': this._sourceType === SOURCE_TYPES.audio, 'd2l-labs-media-player-type-is-video': this._sourceType === SOURCE_TYPES.video, 'd2l-labs-media-player-type-is-unknown': this._sourceType === SOURCE_TYPES.unknown };
