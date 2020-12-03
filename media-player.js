@@ -56,6 +56,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 		return {
 			allowDownload: { type: Boolean, attribute: 'allow-download', reflect: true },
 			autoplay: { type: Boolean },
+			crossorigin: { type: String },
 			loop: { type: Boolean },
 			poster: { type: String },
 			src: { type: String },
@@ -731,6 +732,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 						?controls="${IS_IOS}"
 						?autoplay="${this.autoplay}"
 						?loop="${this.loop}"
+						crossorigin="${ifDefined(this.crossorigin)}"
 						poster="${ifDefined(this.poster)}"
 						preload="${this.poster ? 'metadata' : 'auto'}"
 						@click=${this._onVideoClick}
@@ -754,6 +756,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 						id="d2l-labs-media-player-audio"
 						?autoplay="${this.autoplay}"
 						?loop="${this.loop}"
+						crossorigin="${ifDefined(this.crossorigin)}"
 						preload="auto"
 						@contextmenu=${this._onContextMenu}
 						@durationchange=${this._onDurationChange}
