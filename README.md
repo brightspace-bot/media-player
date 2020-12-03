@@ -53,6 +53,7 @@ npm install @brightspace-ui-labs/media-player
 |--|--|--|--|
 | allow-download| Boolean | false | If set, will allow the media to be downloaded.
 | autoplay | Boolean | false | If set, will play the media as soon as it has been loaded. |
+| crossorigin | String | null | If set, will set the `crossorigin` attribute on the underlying media element to the set value.
 | loop | Boolean | false | If set, once the media has finished playing it will replay from the beginning. |
 | poster | String | null | URL of the image to display in place of the media before it has loaded. |
 | src | String, required |  | URL of the media to play. |
