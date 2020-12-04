@@ -37,6 +37,9 @@ const MESSAGE_TYPES = {
 const MIN_TRACK_WIDTH_PX = 250;
 const IS_IOS = /iPad|iPhone|iPod/.test(navigator.platform);
 const PLAYBACK_SPEEDS = ['0.25', '0.5', '0.75', '1.0', '1.25', '1.5', '2.0'];
+const PREFERENCES_KEY_PREFIX = 'D2L.MediaPlayer.Preferences';
+const PREFERENCES_SPEED_KEY = `${PREFERENCES_KEY_PREFIX}.Speed`;
+const PREFERENCES_TRACK_IDENTIFIER_KEY = `${PREFERENCES_KEY_PREFIX}.Track`;
 const SEEK_BAR_UPDATE_PERIOD_MS = 0;
 const SOURCE_TYPES = {
 	audio: 'audio',
@@ -65,12 +68,12 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 			_loading: { type: Boolean, attribute: false },
 			_message: { type: Object, attribute: false },
 			_muted: { type: Boolean, attribute: false },
-			_playbackSpeedMenuValue: { type: String, attribute: false },
 			_playing: { type: Boolean, attribute: false },
 			_recentlyShowedCustomControls: { type: Boolean, attribute: false },
+			_selectedSpeed: { type: String, attribute: false },
+			_selectedTrackIdentifier: { type: String, attribute: false },
 			_sourceType: { type: String, attribute: false },
 			_trackFontSizeRem: { type: Number, attribute: false },
-			_trackMenuValue: { type: String, attribute: false },
 			_tracks: { type: Array, attribute: false },
 			_trackText: { type: String, attribute: false },
 			_usingVolumeContainer: { type: Boolean, attribute: false },
@@ -366,7 +369,6 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 			type: null
 		};
 		this._muted = false;
-		this._playbackSpeedMenuValue = '1.0';
 		this._playing = false;
 		this._recentlyShowedCustomControls = false;
 		this._settingsMenu = null;
@@ -393,8 +395,6 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 		super.firstUpdated(changedProperties);
 
 		if (!this.src) console.warn('d2l-labs-media-player component requires src text');
-
-		this._trackMenuValue = this.localize('off');
 
 		this._mediaContainer = this.shadowRoot.getElementById('d2l-labs-media-player-media-container');
 		this._playButton = this.shadowRoot.getElementById('d2l-labs-media-player-play-button');
@@ -542,10 +542,14 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 						<d2l-dropdown-menu id="d2l-labs-media-player-settings-menu" no-pointer theme="${ifDefined(theme)}">
 							<d2l-menu label="${this.localize('settings')}" theme="${ifDefined(theme)}">
 								<d2l-menu-item id="d2l-labs-media-player-playback-speeds" text="${this.localize('playbackSpeed')}">
-									<div slot="supporting">${this._playbackSpeedMenuValue}</div>
+									<div slot="supporting">${this._selectedSpeed}</div>
 									<d2l-menu @d2l-menu-item-change=${this._onPlaybackSpeedsMenuItemChange} theme="${ifDefined(theme)}">
 										${PLAYBACK_SPEEDS.map(speed => html`
-											<d2l-menu-item-radio text="${speed === '1.0' ? `1.0 (${this.localize('default')})` : speed}" value="${speed}" ?selected="${speed === '1.0'}"></d2l-menu-item-radio>
+											<d2l-menu-item-radio
+												?selected="${speed === this._selectedSpeed}"
+												text="${speed === '1.0' ? `1.0 (${this.localize('default')})` : speed}"
+												value="${speed}"
+											></d2l-menu-item-radio>
 										`)}
 									</d2l-menu>
 								</d2l-menu-item>
@@ -708,6 +712,10 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 		` : null;
 	}
 
+	_getKindFromTrackIdentifier(trackIdentifier) {
+		return !trackIdentifier ? null : JSON.parse(trackIdentifier).kind;
+	}
+
 	_getLoadingSpinnerView() {
 		return this._loading ? html`
 			<div class="d2l-labs-media-player-full-area-centred">
@@ -787,15 +795,30 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 		}
 	}
 
+	_getSrclangFromTrackIdentifier(trackIdentifier) {
+		return !trackIdentifier ? null : JSON.parse(trackIdentifier).srclang;
+	}
+
+	_getTrackIdentifier(srclang, kind) {
+		return JSON.stringify({
+			kind,
+			srclang
+		});
+	}
+
 	_getTracksMenuView() {
 		const theme = this._sourceType === SOURCE_TYPES.video ? 'dark' : undefined;
 		return this._tracks.length > 0 ? html`
 			<d2l-menu-item text="${this.localize('captions')}">
-				<div slot="supporting">${this._trackMenuValue}</div>
+				<div slot="supporting">${this._selectedTrackLabel}</div>
 				<d2l-menu @d2l-menu-item-change=${this._onTracksMenuItemChange} theme="${ifDefined(theme)}">
-					<d2l-menu-item-radio text="${this.localize('off')}" value="${this.localize('off')}" selected></d2l-menu-item-radio>
+					<d2l-menu-item-radio text="${this.localize('off')}" ?selected="${!this._selectedTrackIdentifier}"></d2l-menu-item-radio>
 					${this._tracks.map(track => html`
-						<d2l-menu-item-radio text="${`${track.label}${track.kind === TRACK_KINDS.captions ? ' (CC)' : ''}`}" value="${track.srclang}"></d2l-menu-item-radio>
+						<d2l-menu-item-radio
+							?selected="${this._getTrackIdentifier(track.srclang, track.kind) === this._selectedTrackIdentifier}"
+							text="${`${track.label}${track.kind === TRACK_KINDS.captions ? ` (${this.localize('closedCaptionsAcronym')})` : ''}`}"
+							value="${this._getTrackIdentifier(track.srclang, track.kind)}"
+						></d2l-menu-item-radio>
 					`)}
 				</d2l-menu>
 			</d2l-menu-item>
@@ -917,6 +940,15 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 	_onLoadedMetadata() {
 		this._loading = false;
 		this._setLoadSuccessMessage();
+
+		if (localStorage.getItem(PREFERENCES_SPEED_KEY)) {
+			this._onPlaybackSpeedsMenuItemChange({
+				target: {
+					value: localStorage.getItem(PREFERENCES_SPEED_KEY)
+				}
+			});
+		}
+
 		this.dispatchEvent(new CustomEvent('loadedmetadata'));
 	}
 
@@ -943,8 +975,10 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 	}
 
 	_onPlaybackSpeedsMenuItemChange(e) {
-		this._media.playbackRate = e.target.value;
-		this._playbackSpeedMenuValue = e.target.value;
+		const speed = e.target.value;
+		this._media.playbackRate = speed;
+		this._selectedSpeed = speed;
+		localStorage.setItem(PREFERENCES_SPEED_KEY, speed);
 	}
 
 	_onPositionChangeSeek() {
@@ -1045,14 +1079,23 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 		// It has been observed to happen synchronously, or during the next event loop
 		// Changing the mode in this event loop and the next catches both scenarios
 		// Needs to be caught right away, since the cuechange event can be emitted immediately
-		const setAllDisabled = (() => {
+		// Set default track to 'hidden'
+		const initializeTracks = (() => {
+			this._selectedTrackIdentifier = localStorage.getItem(PREFERENCES_TRACK_IDENTIFIER_KEY);
+
 			for (let i = 0; i < this._media.textTracks.length; i++) {
-				this._media.textTracks[i].mode = 'disabled';
+				const textTrack = this._media.textTracks[i];
+
+				if (this._selectedTrackIdentifier && textTrack.language === this._getSrclangFromTrackIdentifier(this._selectedTrackIdentifier) && textTrack.kind === this._getKindFromTrackIdentifier(this._selectedTrackIdentifier)) {
+					textTrack.mode = 'hidden';
+				} else {
+					textTrack.mode = 'disabled';
+				}
 			}
 		}).bind(this);
 
-		setAllDisabled();
-		setTimeout(setAllDisabled, 0);
+		initializeTracks();
+		setTimeout(initializeTracks, 0);
 	}
 
 	_onTimeUpdate() {
@@ -1064,12 +1107,17 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 	}
 
 	_onTracksMenuItemChange(e) {
-		this._trackMenuValue = e.target.text;
-
 		this._trackText = null;
 
+		this._selectedTrackIdentifier = e.target.value;
+
+		if (this._selectedTrackIdentifier) localStorage.setItem(PREFERENCES_TRACK_IDENTIFIER_KEY, this._selectedTrackIdentifier);
+		else localStorage.removeItem(PREFERENCES_TRACK_IDENTIFIER_KEY);
+
 		for (let i = 0; i < this._media.textTracks.length; i++) {
-			if (this._media.textTracks[i].language === e.target.value) {
+			const track = this._media.textTracks[i];
+
+			if (track.language === this._getSrclangFromTrackIdentifier(this._selectedTrackIdentifier) && track.kind === this._getKindFromTrackIdentifier(this._selectedTrackIdentifier)) {
 				this._media.textTracks[i].mode = 'hidden';
 			} else {
 				this._media.textTracks[i].mode = 'disabled';
@@ -1111,6 +1159,16 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 		if (this._volume > 0) {
 			this._muted = false;
 		}
+	}
+
+	get _selectedTrackLabel() {
+		for (let i = 0; i < this._tracks.length; i++) {
+			const track = this._tracks[i];
+
+			if (track.srclang === this._getSrclangFromTrackIdentifier(this._selectedTrackIdentifier) && track.kind === this._getKindFromTrackIdentifier(this._selectedTrackIdentifier)) return track.label;
+		}
+
+		return this.localize('off');
 	}
 
 	_setLoadErrorMessage() {
