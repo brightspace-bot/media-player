@@ -713,7 +713,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 	}
 
 	_getKindFromTrackIdentifier(trackIdentifier) {
-		return MediaPlayer._isNullOrUndefined(trackIdentifier) ? null : JSON.parse(trackIdentifier).kind;
+		return !trackIdentifier ? null : JSON.parse(trackIdentifier).kind;
 	}
 
 	_getLoadingSpinnerView() {
@@ -796,7 +796,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 	}
 
 	_getSrclangFromTrackIdentifier(trackIdentifier) {
-		return MediaPlayer._isNullOrUndefined(trackIdentifier) ? null : JSON.parse(trackIdentifier).srclang;
+		return !trackIdentifier ? null : JSON.parse(trackIdentifier).srclang;
 	}
 
 	_getTrackIdentifier(srclang, kind) {
@@ -812,11 +812,11 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 			<d2l-menu-item text="${this.localize('captions')}">
 				<div slot="supporting">${this._selectedTrackLabel}</div>
 				<d2l-menu @d2l-menu-item-change=${this._onTracksMenuItemChange} theme="${ifDefined(theme)}">
-					<d2l-menu-item-radio text="${this.localize('off')}" ?selected="${MediaPlayer._isNullOrUndefined(this._selectedTrackIdentifier)}"></d2l-menu-item-radio>
+					<d2l-menu-item-radio text="${this.localize('off')}" ?selected="${!this._selectedTrackIdentifier}"></d2l-menu-item-radio>
 					${this._tracks.map(track => html`
 						<d2l-menu-item-radio
 							?selected="${this._getTrackIdentifier(track.srclang, track.kind) === this._selectedTrackIdentifier}"
-							text="${`${track.label}${track.kind === TRACK_KINDS.captions ? ' (CC)' : ''}`}"
+							text="${`${track.label}${track.kind === TRACK_KINDS.captions ? ` (${this.localize('closedCaptionsAcronym')})` : ''}`}"
 							value="${this._getTrackIdentifier(track.srclang, track.kind)}"
 						></d2l-menu-item-radio>
 					`)}
@@ -828,10 +828,6 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 	_hidingCustomControls() {
 		const settingsMenuOpened = this._settingsMenu && this._settingsMenu.opened;
 		return this.isIOSVideo || (this._playing && !this._recentlyShowedCustomControls && !this._hoveringMediaControls && !settingsMenuOpened && !this._usingVolumeContainer && this._sourceType === SOURCE_TYPES.video) || this._sourceType === SOURCE_TYPES.unknown;
-	}
-
-	static _isNullOrUndefined(val) {
-		return val === null || val === undefined;
 	}
 
 	_listenForKeyboard(e) {
@@ -1090,12 +1086,8 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 			for (let i = 0; i < this._media.textTracks.length; i++) {
 				const textTrack = this._media.textTracks[i];
 
-				if (!MediaPlayer._isNullOrUndefined(this._selectedTrackIdentifier)) {
-					if (textTrack.language === this._getSrclangFromTrackIdentifier(this._selectedTrackIdentifier) && textTrack.kind === this._getKindFromTrackIdentifier(this._selectedTrackIdentifier)) {
-						textTrack.mode = 'hidden';
-					} else {
-						textTrack.mode = 'disabled';
-					}
+				if (this._selectedTrackIdentifier && textTrack.language === this._getSrclangFromTrackIdentifier(this._selectedTrackIdentifier) && textTrack.kind === this._getKindFromTrackIdentifier(this._selectedTrackIdentifier)) {
+					textTrack.mode = 'hidden';
 				} else {
 					textTrack.mode = 'disabled';
 				}
@@ -1119,7 +1111,7 @@ class MediaPlayer extends FocusVisiblePolyfillMixin(InternalLocalizeMixin(RtlMix
 
 		this._selectedTrackIdentifier = e.target.value;
 
-		if (!MediaPlayer._isNullOrUndefined(this._selectedTrackIdentifier)) localStorage.setItem(PREFERENCES_TRACK_IDENTIFIER_KEY, this._selectedTrackIdentifier);
+		if (this._selectedTrackIdentifier) localStorage.setItem(PREFERENCES_TRACK_IDENTIFIER_KEY, this._selectedTrackIdentifier);
 		else localStorage.removeItem(PREFERENCES_TRACK_IDENTIFIER_KEY);
 
 		for (let i = 0; i < this._media.textTracks.length; i++) {

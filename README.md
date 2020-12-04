@@ -138,6 +138,17 @@ The media player supports captions and subtitles, provided as `.srt` or `.vtt` f
 | src | String, required | The URL of the source file.
 | srclang | String, required | The language's code.
 
+## Local Storage
+
+The media player uses local storage to persist the user's playback speed and track selections.
+
+**Items**
+
+| Key | Description |
+| -- | -- |
+| D2L.MediaPlayer.Preferences.Speed | Playback speed that was last selected.
+| D2L.MediaPlayer.Preferences.Track | Identifier for the kind and language of the track that was last selected.
+
 ## Accessibility
 
 The following features are implemented to improve accessibility:

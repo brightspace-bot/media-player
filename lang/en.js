@@ -1,5 +1,6 @@
 export default {
 	captions: 'Captions',
+	closedCaptionsAcronym: 'CC',
 	default: 'Default',
 	download: 'Download',
 	exitFullscreen: 'Exit fullscreen',
